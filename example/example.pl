@@ -17,9 +17,7 @@ sub fetch_it {
 my $cv = AnyEvent->condvar;
 
 when(
-    fetch_it('http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=foo'),
-    fetch_it('http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=bar'),
-    fetch_it('http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=baz')
+    map { fetch_it('http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=' . $_) } @ARGV
 )->then(
     sub { $cv->send( @_ ) },
     sub { $cv->croak( 'ERROR' ) }

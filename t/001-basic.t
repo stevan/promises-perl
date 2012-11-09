@@ -18,7 +18,7 @@ my $p0 = delay_me( 2 );
 
 $p0->then(
     sub { $cv->send( 'ZERO', @_, $p0->status, $p0->result ) },
-    sub { $cv->send( 'ERROR' ) }
+    sub { $cv->croak( 'ERROR' ) }
 );
 
 diag "Delaying for 2 seconds ...";

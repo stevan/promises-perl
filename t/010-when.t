@@ -20,7 +20,7 @@ my $p1 = delay_me( 5 );
 
 when( $p0, $p1 )->then(
     sub { $cv->send( @_ ) },
-    sub { $cv->send( 'ERROR' ) }
+    sub { $cv->croak( 'ERROR' ) }
 );
 
 diag "Delaying for 5 seconds ...";

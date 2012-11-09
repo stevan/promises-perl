@@ -21,12 +21,12 @@ my $p1 = delay_me( 5 );
 
 $p1->then(
     sub { $cv1->send( 'ONE', @_, $p1->status, $p1->result ) },
-    sub { $cv1->send( 'ERROR' ) }
+    sub { $cv1->croak( 'ERROR' ) }
 );
 
 $p0->then(
     sub { $cv0->send( 'ZERO', @_, $p0->status, $p0->result ) },
-    sub { $cv0->send( 'ERROR' ) }
+    sub { $cv0->croak( 'ERROR' ) }
 );
 
 diag "Delaying for 2 seconds ...";

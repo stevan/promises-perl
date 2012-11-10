@@ -14,7 +14,6 @@ sub new {
     bless { 'deferred' => $deferred } => $class;
 }
 
-sub promise { shift }
 sub then    { (shift)->{'deferred'}->then( @_ ) }
 sub status  { (shift)->{'deferred'}->status     }
 sub result  { (shift)->{'deferred'}->result     }

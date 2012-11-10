@@ -4,7 +4,7 @@ package Promises::Deferred;
 use strict;
 use warnings;
 
-use Scalar::Util qw[ blessed ];
+use Scalar::Util qw[ blessed reftype ];
 use Carp         qw[ confess ];
 
 use Promises::Promise;
@@ -52,6 +52,12 @@ sub reject {
 sub then {
     my ($self, $callback, $error) = @_;
 
+    (ref $callback && reftype $callback eq 'CODE')
+        || confess "You must pass in a success callback";
+
+    (ref $error && reftype $error eq 'CODE')
+        || confess "You must pass in a error callback";
+
     my $d = (ref $self)->new;
 
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
@@ -95,7 +101,9 @@ __END__
 
 =head1 SYNOPSIS
 
-  use Promises::Promise;
+  use Promises::Deferred;
 
 =head1 DESCRIPTION
+
+Please see the documentation in C<Promises> for more info.
 

@@ -28,3 +28,4 @@ __END__
 
 =head1 DESCRIPTION
 
+Please see the documentation in C<Promises> for more info.

@@ -22,10 +22,35 @@ sub result  { (shift)->{'deferred'}->result     }
 
 __END__
 
-=head1 SYNOPSIS
-
-  use Promises::Promise;
-
 =head1 DESCRIPTION
 
-Please see the documentation in C<Promises> for more info.
+Promise objects are typically not created by hand, they
+are typically returned from the C<promise> method of
+a L<Promises::Deferred> instance. It is best to think
+of a L<Promises::Promise> instance as a handle for
+L<Promises::Deferred> instances.
+
+=head1 METHODS
+
+=over 4
+
+=item C<new( $deferred )>
+
+The constructor only takes one parameter and that is an
+instance of L<Promises::Deferred> that you want this
+object to proxy.
+
+=item C<then( $callback, $error )>
+
+This calls C<then> on the proxied L<Promises::Deferred> instance.
+
+=item C<status>
+
+This calls C<status> on the proxied L<Promises::Deferred> instance.
+
+=item C<result>
+
+This calls C<result> on the proxied L<Promises::Deferred> instance.
+
+=back
+

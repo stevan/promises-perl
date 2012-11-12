@@ -42,41 +42,41 @@ __END__
 
 =head1 SYNOPSIS
 
-    use AnyEvent::HTTP;
-    use JSON::XS qw[ decode_json ];
-    use Promises qw[ when ];
+  use AnyEvent::HTTP;
+  use JSON::XS qw[ decode_json ];
+  use Promises qw[ when ];
 
-    sub fetch_it {
-        my ($uri) = @_;
-        my $d = Promises::Deferred->new;
-        http_get $uri => sub {
-            my ($body, $headers) = @_;
-            $headers->{Status} == 200
-                ? $d->resolve( decode_json( $body ) )
-                : $d->reject( $body )
-        };
-        $d->promise;
-    }
+  sub fetch_it {
+      my ($uri) = @_;
+      my $d = Promises::Deferred->new;
+      http_get $uri => sub {
+          my ($body, $headers) = @_;
+          $headers->{Status} == 200
+              ? $d->resolve( decode_json( $body ) )
+              : $d->reject( $body )
+      };
+      $d->promise;
+  }
 
-    my $cv = AnyEvent->condvar;
+  my $cv = AnyEvent->condvar;
 
-    when(
-        fetch_it('http://rest.api.example.com/-/product/12345'),
-        fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
-        fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
-    )->then(
-        sub {
-            my ($product, $suggestions, $reviews) = @_;
-            $cv->send({
-                product     => $product,
-                suggestions => $suggestions,
-                reviews     => $reviews,
-            })
-        },
-        sub { $cv->croak( 'ERROR' ) }
-    );
+  when(
+      fetch_it('http://rest.api.example.com/-/product/12345'),
+      fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
+      fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
+  )->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
 
-    my $all_product_info = $cv->recv;
+  my $all_product_info = $cv->recv;
 
 =head1 DESCRIPTION
 
@@ -352,5 +352,29 @@ please let me know.
 I hope this has helped you to understand Promises as a pattern for
 asynchronous programming and to illustrate the benefits and control
 they bring to it.
+
+=head1 EXPORTS
+
+=over 4
+
+=item C<when( @promises )>
+
+The only export for this module is the C<when> function, which
+accepts an array of L<Promises::Promise> objects and then
+returns a L<Promises::Promise> object which will be called
+once all the C<@promises> have completed (either as an error
+or as a success). The eventual result of the returned promise
+object will be an array of all the results (or errors) of each
+of the C<@promises> in the order in which they where passed
+to C<when> originally.
+
+=back
+
+
+
+
+
+
+
 
 

@@ -107,7 +107,81 @@ __END__
 
   use Promises::Deferred;
 
+  sub fetch_it {
+      my ($uri) = @_;
+      my $d = Promises::Deferred->new;
+      http_get $uri => sub {
+          my ($body, $headers) = @_;
+          $headers->{Status} == 200
+              ? $d->resolve( decode_json( $body ) )
+              : $d->reject( $body )
+      };
+      $d->promise;
+  }
+
 =head1 DESCRIPTION
 
-Please see the documentation in C<Promises> for more info.
+=head1 METHODS
+
+=over 4
+
+=item C<new>
+
+This will construct an instance, it takes no arguments.
+
+=item C<promise>
+
+This will return a L<Promises::Promise> that can be used
+as a handle for this object.
+
+=item C<status>
+
+This will return the status of the the asynchronous
+operation, which will be either 'in progress', 'resolved'
+or 'rejected'. These three strings are also constants
+in this package (C<IN_PROGRESS>, C<RESOLVED> and C<REJECTED>
+respectively), which can be used to check these values.
+
+=item C<result>
+
+This will return the result that has been passed to either
+the C<resolve> or C<reject> methods. It will always return
+an ARRAY reference since both C<resolve> and C<reject>
+take a variable number of arguments.
+
+=item C<then( $callback, $error )>
+
+This method is used to register two callbacks, the first
+C<$callback> will be called on success and it will be
+passed all the values that were sent to the corresponding
+call to C<resolve>. The second, C<$error> will be called
+on error, and will be passed the all the values that were
+sent to the corresponding C<reject>. It should be noted
+that this method will always return the associated
+L<Promises::Promise> instance so that you can chain
+things if you like.
+
+=item C<resolve( @args )>
+
+This is the method to call upon the successful completion
+of your asynchronous operation, meaning typically you
+would call this within the callback that you gave to the
+asynchronous function/method. It takes an arbitrary list
+of arguments and captures them as the C<result> of this
+promise (so obviously they can be retrieved with the
+C<result> method).
+
+=item C<reject( @args )>
+
+This is the method to call when an error occurs during
+your asynchronous operation, meaning typically you
+would call this within the callback that you gave to the
+asynchronous function/method. It takes an arbitrary list
+of arguments and captures them as the C<result> of this
+promise (so obviously they can be retrieved with the
+C<result> method).
+
+=back
+
+
 

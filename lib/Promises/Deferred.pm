@@ -83,10 +83,15 @@ sub _wrap {
     return sub {
         my $result = $f->( @_ );
         if ( blessed $result && $result->isa('Promises::Promise') ) {
-            $result->then(
-                sub { $d->resolve },
-                sub { $d->reject  },
-            );
+            if ( $result->status eq RESOLVED || $result->status eq REJECTED ) {
+                $result->then(
+                    sub { $d->resolve },
+                    sub { $d->reject  },
+                );
+            }
+            else {
+                $d->$method( $result->result );
+            }
         }
         else {
             $d->$method( $result )

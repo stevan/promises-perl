@@ -370,7 +370,13 @@ to C<when> originally.
 
 =back
 
+=head1 SEE ALSO
 
+=over 4
+
+=item "You're Missing the Point of Promises" L<https://gist.github.com/3889970>
+
+=back
 
 
 

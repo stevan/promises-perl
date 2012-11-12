@@ -12,6 +12,8 @@ use Promises::Promise;
 use constant IN_PROGRESS => 'in progress';
 use constant RESOLVED    => 'resolved';
 use constant REJECTED    => 'rejected';
+use constant RESOLVING   => 'resolving';
+use constant REJECTING   => 'rejecting';
 
 sub new {
     my $class = shift;
@@ -33,6 +35,7 @@ sub resolve {
     my $self   = shift;
     my $result = [ @_ ];
     $self->{'result'} = $result;
+    $self->{'status'} = RESOLVING;
     $self->_notify( $self->{'resolved'}, $result );
     $self->{'resolved'} = [];
     $self->{'status'}   = RESOLVED;
@@ -43,9 +46,10 @@ sub reject {
     my $self = shift;
     my $result = [ @_ ];
     $self->{'result'} = $result;
+    $self->{'status'} = REJECTING;
     $self->_notify( $self->{'rejected'}, $result );
     $self->{'rejected'} = [];
-    $self->{'status'}   = RESOLVED;
+    $self->{'status'}   = REJECTED;
     $self;
 }
 

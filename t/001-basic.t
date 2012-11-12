@@ -30,7 +30,7 @@ is_deeply(
     [
         'ZERO',
         'resolved after 2',
-        Promises::Deferred->IN_PROGRESS,
+        Promises::Deferred->RESOLVING,
         [ 'resolved after 2' ]
     ],
     '... got the expected values back'

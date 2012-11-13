@@ -15,15 +15,15 @@ BEGIN {
 
 my $cv = AnyEvent->condvar;
 
-my $p0 = delay_me( 2 );
-my $p1 = delay_me( 5 );
+my $p0 = delay_me( 1 );
+my $p1 = delay_me( 2 );
 
 when( $p0, $p1 )->then(
     sub { $cv->send( @_ ) },
     sub { $cv->croak( 'ERROR' ) }
 );
 
-diag "Delaying for 5 seconds ...";
+diag "Delaying for 2 seconds ...";
 
 is( $p0->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 0' );
 is( $p1->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 1' );
@@ -31,8 +31,8 @@ is( $p1->status, Promises::Deferred->IN_PROGRESS, '... got the right status in p
 is_deeply(
     [ $cv->recv ],
     [
-        [ 'resolved after 2' ],
-        [ 'resolved after 5' ]
+        [ 'resolved after 1' ],
+        [ 'resolved after 2' ]
     ],
     '... got the expected values back'
 );

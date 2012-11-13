@@ -81,15 +81,15 @@ sub then {
 sub _wrap {
     my ($self, $d, $f, $method) = @_;
     return sub {
-        my $result = $f->( @_ );
-        if ( blessed $result && $result->isa('Promises::Promise') ) {
-            $result->then(
-                sub { $d->resolve( @{ $result->result } ) },
+        my @results = $f->( @_ );
+        if ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
+            $results[0]->then(
+                sub { $d->resolve( @{ $results[0]->result } ) },
                 sub { $d->reject  },
             );
         }
         else {
-            $d->$method( $result )
+            $d->$method( @results )
         }
     }
 }

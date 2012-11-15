@@ -347,6 +347,56 @@ C<condvars> as well).
 NOTE: Again, if can think of a better way to do this that I missed,
 please let me know.
 
+=head2 Chaining/Pipelining example
+
+  my $cv = AnyEvent->condvar;
+
+  fetch_it(
+      'http://rest.api.example.com/-/user/search?access_level=admin'
+  )->then(
+      sub {
+          my $admins = shift;
+          when(
+              map {
+                  fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
+              } @$admins
+          );
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  )->then(
+      sub { $cv->send( @_ ) },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+  my @all_admins = $cv->recv;
+
+So one of the real benefits of the Promise pattern is how it allows
+you to write code that flows and reads more like synchronous code
+by using the chaining nature of Promises. In example above we are
+first fetching a list of users whose access level is 'admin', in
+our fictional web-service we get back a list of JSON objects with
+only minimal information, just a user_id and full_name for instance.
+From here we can then loop through the results and fetch the full
+user object for each one of these users, passing all of the promises
+returned by C<fetch_it> into C<when>, which itself returns a promise.
+
+So despite being completely asynchronous, this code reads much like
+a blocking synchronous version would read, from top to bottom.
+
+  try {
+      my $admins = fetch_it( 'http://rest.api.example.com/-/user/search?access_level=admin' );
+      my @all_admins = map {
+          fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
+      } @$admins;
+  } catch {
+      die $_;
+  };
+
+The only difference really are the C<then> wrappers and the way in
+which we handle errors, but otherwise they are pretty similar. Of
+course the Promise version runs asynchronously and reaps all the
+benefits that brings.
+
 =head2 Conclusion
 
 I hope this has helped you to understand Promises as a pattern for

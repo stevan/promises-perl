@@ -95,17 +95,17 @@ The example in the synopsis actually demonstrates a number
 of the features of this module, this section will break down
 each part and explain them in order.
 
-    sub fetch_it {
-        my ($uri) = @_;
-        my $d = Promises::Deferred->new;
-        http_get $uri => sub {
-            my ($body, $headers) = @_;
-            $headers->{Status} == 200
-                ? $d->resolve( decode_json( $body ) )
-                : $d->reject( $body )
-        };
-        $d->promise;
-    }
+  sub fetch_it {
+      my ($uri) = @_;
+      my $d = Promises::Deferred->new;
+      http_get $uri => sub {
+          my ($body, $headers) = @_;
+          $headers->{Status} == 200
+              ? $d->resolve( decode_json( $body ) )
+              : $d->reject( $body )
+      };
+      $d->promise;
+  }
 
 First is the C<fetch_it> function, the pattern within this function
 is the typical way in which you might wrap an async function call
@@ -126,14 +126,14 @@ program. Now, before we dive into the rest of the example, lets
 take a quick detour to look at what promises do. Take the following
 code for example:
 
-    my $p = fetch_it('http://rest.api.example.com/-/user/bob@example.com');
+  my $p = fetch_it('http://rest.api.example.com/-/user/bob@example.com');
 
 At this point, our async operation is running, but we have not yet
 given it anything to do when the callback is fired. We will get to
 that shortly, but first lets look at what information we can get
 from the promise.
 
-    $p->status;
+  $p->status;
 
 Calling the C<status> method will return a string representing the
 status of the promise. This will be either I<in progress>, I<resolved>
@@ -142,7 +142,7 @@ class, C<IN_PROGRESS>, C<RESOLVED> and C<REJECTED>). At this point,
 this method call is likely to return I<in progress>. Next is the C<result>
 method:
 
-    $p->result;
+  $p->result;
 
 which will give us back the values that are passed to either C<resolve>
 or C<reject> on the associated L<Promises::Deferred> instance.
@@ -162,16 +162,16 @@ easily go about providing some level of sequencing and control.
 
 That all said, lets register a callback with our promise.
 
-    $p->then(
-        sub {
-            my ($user) = @_;
-            do_something_with_a_user( $user );
-        },
-        sub {
-            my ($err) = @_;
-            warn "An error was received : $err";
-        }
-    );
+  $p->then(
+      sub {
+          my ($user) = @_;
+          do_something_with_a_user( $user );
+      },
+      sub {
+          my ($err) = @_;
+          warn "An error was received : $err";
+      }
+  );
 
 As you can see, we use the C<then> method (again, keep in mind this is
 just proxying to the associated L<Promises::Deferred> instance) and
@@ -203,18 +203,18 @@ programming (if I so choose). It provides a kind of a transaction
 wrapper if you will, around my async operations. So, first step is
 to actually create that C<condvar>.
 
-   my $cv = AnyEvent->condvar;
+  my $cv = AnyEvent->condvar;
 
 Next, we jump back into the land of Promises. Now I am breaking apart
 the calling of C<when> and the subsequent chained C<then> call here
 to help keep things in digestible chunks, but also to illustrate that
 C<when> just returns a promise (as you might have guessed anyway).
 
-    my $p = when(
-        fetch_it('http://rest.api.example.com/-/product/12345'),
-        fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
-        fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
-    );
+  my $p = when(
+      fetch_it('http://rest.api.example.com/-/product/12345'),
+      fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
+      fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
+  );
 
 So, what is going on here is that we want to be able to run multiple
 async operations in parallel, but we need to wait for all of them to
@@ -226,17 +226,17 @@ C<Promises::Deferred> instance it created to watch and handle the
 multiple promises you passed it. Okay, so now lets move onto adding
 callbacks to our promise that C<when> returned to us.
 
-    $p->then(
-        sub {
-            my ($product, $suggestions, $reviews) = @_;
-            $cv->send({
-                product     => $product,
-                suggestions => $suggestions,
-                reviews     => $reviews,
-            })
-        },
-        sub { $cv->croak( 'ERROR' ) }
-    );
+  $p->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
 
 So, you will notice that, as before, we provide a success and an error
 callback, but you might notice one slight difference in the success
@@ -249,7 +249,7 @@ collected product info. As I said above, C<condvars> are a way of
 wrapping your async operations into a transaction like block, when
 code execution encounters a C<recv>, such as in our next line of code:
 
-    my $all_product_info = $cv->recv;
+  my $all_product_info = $cv->recv;
 
 the event loop will block until a corresponding C<send> is called on
 the C<condvar>. While you are not required to pass arguments to C<send>
@@ -290,53 +290,53 @@ not claim at all to be an expert in async programming.
 So, enough caveating, please consider this (more traditional) version
 of our example:
 
-    my $cv = AnyEvent->condvar;
+  my $cv = AnyEvent->condvar;
 
-    http_get('http://rest.api.example.com/-/product/12345', sub {
-        my ($product) = @_;
-        http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
-            my ($suggestions) = @_;
-            http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
-                my ($reviews) = @_;
-                $cv->send({
-                    product     => $product,
-                    suggestions => $suggestions,
-                    reviews     => $reviews,
-                })
-            }),
-        });
-    });
+  http_get('http://rest.api.example.com/-/product/12345', sub {
+      my ($product) = @_;
+      http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
+          my ($suggestions) = @_;
+          http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
+              my ($reviews) = @_;
+              $cv->send({
+                  product     => $product,
+                  suggestions => $suggestions,
+                  reviews     => $reviews,
+              })
+          }),
+      });
+  });
 
-    my $all_product_info = $cv->recv;
+  my $all_product_info = $cv->recv;
 
 Not only do we have deeply nested callbacks, but we have an enforced
 order of operations. If you wanted to try and avoid that order of
 operations, you might end up writing something like this:
 
-    my $product_cv    = AnyEvent->condvar;
-    my $suggestion_cv = AnyEvent->condvar;
-    my $review_cv     = AnyEvent->condvar;
+   my $product_cv    = AnyEvent->condvar;
+   my $suggestion_cv = AnyEvent->condvar;
+   my $review_cv     = AnyEvent->condvar;
 
-    http_get('http://rest.api.example.com/-/product/12345', sub {
-        my ($product) = @_;
-        $product_cv->send( $product );
-    });
+   http_get('http://rest.api.example.com/-/product/12345', sub {
+       my ($product) = @_;
+       $product_cv->send( $product );
+   });
 
-    http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
-        my ($suggestions) = @_;
-        $suggestion_cv->send( $suggestions );
-    });
+   http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
+       my ($suggestions) = @_;
+       $suggestion_cv->send( $suggestions );
+   });
 
-    http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
-        my ($reviews) = @_;
-        $reviews_cv->send( $reviews )
-    }),
+   http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
+       my ($reviews) = @_;
+       $reviews_cv->send( $reviews )
+   }),
 
-    my $all_product_info = {
-        product     => $product_cv->recv,
-        suggestions => $suggestions_cv->recv,
-        reviews     => $reviews_cv->recv
-    };
+   my $all_product_info = {
+       product     => $product_cv->recv,
+       suggestions => $suggestions_cv->recv,
+       reviews     => $reviews_cv->recv
+   };
 
 But actually, this doesn't work either, while we do gain something by
 allowing the C<http_get> calls to be run in whatever order works best,

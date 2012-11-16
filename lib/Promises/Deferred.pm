@@ -121,6 +121,14 @@ __END__
 
 =head1 DESCRIPTION
 
+This class is meant only to be used by an implementor,
+meaning users of your functions/classes/modules should
+always interact with the associated promise object, but
+you (as the implementor) should use this class. Think
+of this as the engine that drives the promises and the
+promises as the steering wheels that control the
+direction taken.
+
 =head1 METHODS
 
 =over 4

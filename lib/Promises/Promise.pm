@@ -30,6 +30,13 @@ a L<Promises::Deferred> instance. It is best to think
 of a L<Promises::Promise> instance as a handle for
 L<Promises::Deferred> instances.
 
+Most of the documentation here points back to the
+documentation in the L<Promises::Deferred> module.
+
+Additionally the L<Promises> module contains a long
+explanation of how this module, and all it's components
+are meant to work together.
+
 =head1 METHODS
 
 =over 4

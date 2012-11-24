@@ -1,4 +1,18 @@
 Revision history for Perl extension Promises
 
+0.02
+    - add several predicate methods to help when
+      interrogating status, this resolves RT #81278.
+        - thanks to Toby Inkster for this
+    - fixed error chaining so that the result of an
+      error in one step of the chain will be passed
+      onto the next step as well, this resolves
+      RT #81358.
+        - thanks to TOSHIOITO for this
+    - made error callbacks optional and ensured that
+      the errors will bubble to the next promise in
+      the chain, this resolves RT #81356.
+        - thanks again to TOSHIOITO for this
+
 0.01 Friday, Nov. 16th, 2012
     - First release to an unsuspecting world

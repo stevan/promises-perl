@@ -175,17 +175,26 @@ the C<resolve> or C<reject> methods. It will always return
 an ARRAY reference since both C<resolve> and C<reject>
 take a variable number of arguments.
 
-=item C<then( $callback, $error )>
+=item C<then( $callback, ?$error )>
 
 This method is used to register two callbacks, the first
 C<$callback> will be called on success and it will be
 passed all the values that were sent to the corresponding
-call to C<resolve>. The second, C<$error> will be called
-on error, and will be passed the all the values that were
-sent to the corresponding C<reject>. It should be noted
-that this method will always return the associated
-L<Promises::Promise> instance so that you can chain
-things if you like.
+call to C<resolve>. The second, C<$error> is optional and
+will be called on error, and will be passed the all the
+values that were sent to the corresponding C<reject>.
+It should be noted that this method will always return
+the associated L<Promises::Promise> instance so that you
+can chain things if you like.
+
+If this is the last link in the chain, and there is no
+C<$error> callback, the error be silent. You can still
+find it by checking the C<result> method, but no action
+will be taken. If this is not the last link in the chain,
+and no C<$error> is specified, we will attempt to bubble
+the error to the next link in the chain. This allows
+error handling to be consolidated at the point in the
+chain where it makes the most sense.
 
 =item C<resolve( @args )>
 

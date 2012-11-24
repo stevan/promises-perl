@@ -136,10 +136,14 @@ from the promise.
   $p->status;
 
 Calling the C<status> method will return a string representing the
-status of the promise. This will be either I<in progress>, I<resolved>
-or I<rejected>. (NOTE: these are also constants on the L<Promises::Deferred>
-class, C<IN_PROGRESS>, C<RESOLVED> and C<REJECTED>). At this point,
-this method call is likely to return I<in progress>. Next is the C<result>
+status of the promise. This will be either I<in progress>, I<resolved>,
+I<resolving> (meaning it is in the process of resolving), I<rejected>
+or I<rejecting> (meaning it is in the process of rejecting).
+(NOTE: these are also constants on the L<Promises::Deferred> class,
+C<IN_PROGRESS>, C<RESOLVED>, C<REJECTED>, etc., but they are also
+available as predicate methods in both the L<Promises::Deferred> class
+and proxied in the L<Promises::Promise> class). At this point, this
+method call is likely to return I<in progress>. Next is the C<result>
 method:
 
   $p->result;
@@ -183,6 +187,15 @@ receive the arguments that were passed to C<resolve> or C<reject> as
 their only arguments, as you might have guessed, these values are the
 same values you would get if you called C<result> on the promise
 (assuming the async operation was completed).
+
+It should be noted that the error callback is optional. If it is not
+specified then errors will be silently eaten (similar to a C<try> block
+that has not C<catch>). If there is a chain of promises however, the
+error will continue to bubble to the last promise in the chain and
+if there is an error callback there, it will be called. This allows
+you to concentrate error handling in the places where it makes the most
+sense, and ignore it where it doesn't make sense. As I alluded to above,
+this is very similar to nested C<try/catch> blocks.
 
 And really, thats all there is to it. You can continue to call C<then>
 on a promise and it will continue to accumulate callbacks, which will
@@ -361,8 +374,7 @@ please let me know.
                   fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
               } @$admins
           );
-      },
-      sub { $cv->croak( 'ERROR' ) }
+      }
   )->then(
       sub { $cv->send( @_ ) },
       sub { $cv->croak( 'ERROR' ) }
@@ -383,19 +395,23 @@ returned by C<fetch_it> into C<when>, which itself returns a promise.
 So despite being completely asynchronous, this code reads much like
 a blocking synchronous version would read, from top to bottom.
 
+  my @all_admins;
   try {
       my $admins = fetch_it( 'http://rest.api.example.com/-/user/search?access_level=admin' );
-      my @all_admins = map {
+      @all_admins = map {
           fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
       } @$admins;
   } catch {
       die $_;
   };
+  # do something with @all_admins ...
 
 The only difference really are the C<then> wrappers and the way in
-which we handle errors, but otherwise they are pretty similar. Of
-course the Promise version runs asynchronously and reaps all the
-benefits that brings.
+which we handle errors, but even that is very similar since we are
+not including an error callback in the first C<then> and allowing
+the errors to bubble till the final C<then>, which maps very closely
+to the C<try/catch> block. And of course the Promise version runs
+asynchronously and reaps all the benefits that brings.
 
 =head2 Conclusion
 

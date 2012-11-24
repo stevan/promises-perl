@@ -60,7 +60,13 @@ sub then {
         || confess "You must pass in a success callback";
 
     (ref $error && reftype $error eq 'CODE')
-        || confess "You must pass in a error callback";
+        || confess "You must pass in a error callback"
+            if $error;
+
+    # if we don't get an error
+    # handler, we need to chain
+    # it automatically
+    $error ||= sub { @_ };
 
     my $d = (ref $self)->new;
 
@@ -85,7 +91,7 @@ sub _wrap {
         if ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
             $results[0]->then(
                 sub { $d->resolve( @{ $results[0]->result } ) },
-                sub { $d->reject  },
+                sub { $d->reject( @{ $results[0]->result } )  },
             );
         }
         else {

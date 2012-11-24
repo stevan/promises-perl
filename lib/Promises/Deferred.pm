@@ -31,6 +31,18 @@ sub promise { (shift)->{'promise'} }
 sub status  { (shift)->{'status'}  }
 sub result  { (shift)->{'result'}  }
 
+# predicates for all the status possiblities
+sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
+sub is_resolving   { (shift)->{'status'} eq RESOLVING   }
+sub is_rejecting   { (shift)->{'status'} eq REJECTING   }
+sub is_resolved    { (shift)->{'status'} eq RESOLVED    }
+sub is_rejected    { (shift)->{'status'} eq REJECTED    }
+
+# the three possible states according to the spec ...
+sub is_unfulfilled { (shift)->is_in_progress            }
+sub is_fulfilled   { $_[0]->is_resolved || $_[0]->is_resolving }
+sub is_failed      { $_[0]->is_rejected || $_[0]->is_rejecting }
+
 sub resolve {
     my $self   = shift;
     my $result = [ @_ ];
@@ -194,6 +206,48 @@ asynchronous function/method. It takes an arbitrary list
 of arguments and captures them as the C<result> of this
 promise (so obviously they can be retrieved with the
 C<result> method).
+
+=item C<is_in_progress>
+
+This is a predicte method against the status value, it
+returns true of the status is C<IN_PROGRESS>.
+
+=item C<is_resolving>
+
+This is a predicte method against the status value, it
+returns true of the status is C<RESOLVING>.
+
+=item C<is_rejecting>
+
+This is a predicte method against the status value, it
+returns true of the status is C<REJECTING>.
+
+=item C<is_resolved>
+
+This is a predicte method against the status value, it
+returns true of the status is C<RESOLVED>.
+
+=item C<is_rejected>
+
+This is a predicte method against the status value, it
+returns true of the status is C<REJECTED>.
+
+=item C<is_unfulfilled>
+
+This is a predicte method against the status value, it
+returns true of the status is still C<IN_PROGRESS>.
+
+=item C<is_fulfilled>
+
+This is a predicte method against the status value, it
+returns true of the status is C<RESOLVED> or if the
+status if C<RESOLVING>.
+
+=item C<is_failed>
+
+This is a predicte method against the status value, it
+returns true of the status is C<REJECTED> or if the
+status if C<REJECTING>.
 
 =back
 

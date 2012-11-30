@@ -81,13 +81,34 @@ __END__
 =head1 DESCRIPTION
 
 This module is an implementation of the "Promise" pattern for
-asynchronous programming. In particular we are using the API
-spec called "Promise/A" that was created by the Node.JS
-community. This is also the same API that is implemented in
-the latest jQuery and in the YUI Deferred plug-in.
+asynchronous programming. Promises are meant to be a way to
+better deal with the resulting callback spaghetti that can often
+result in asynchronous programs.
 
-Promises are meant to be a way to better deal with the resulting
-callback spaghetti that can often result in asynchronous programs.
+=head2 Relation to the Promise/A spec
+
+We are, with some differences, following the API spec called
+"Promise/A" (and the clarification that is called "Promise/A+")
+which was created by the Node.JS community. This is, for the most
+part, the same API that is implemented in the latest jQuery and
+in the YUI Deferred plug-in (though some purists argue that they
+both go it wrong, google it if you care). We differ in some
+respects to this spec, mostly because Perl idioms and best
+practices are not the same as Javascript idioms and best
+practices. However, the one important difference that should be
+noted is that "Promise/A+" strongly suggests that the callbacks
+given to C<then> should be run asynchronously (meaning in the
+next turn of the event loop). We do not do this because doing
+so would bind us to a given event loop implementation, which
+we very much want to avoid.
+
+=head2 Relation to Futures in Scala
+
+In Scala, Promises are called Futures, they are very similar
+in concept, but very different in practice. This module makes
+no attempt to be like Scala futures, so don't even bother
+comparing them. That said, I might at some point steal some
+of the nicer Future combinators that Scala provides.
 
 =head2 Breaking down the SYNOPSIS
 
@@ -441,6 +462,12 @@ to C<when> originally.
 =over 4
 
 =item "You're Missing the Point of Promises" L<https://gist.github.com/3889970>
+
+=item L<http://wiki.commonjs.org/wiki/Promises/A>
+
+=item L<https://github.com/promises-aplus/promises-spec>
+
+=item L<http://docs.scala-lang.org/sips/pending/futures-promises.html>
 
 =back
 

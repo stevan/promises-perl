@@ -7,8 +7,10 @@ use warnings;
 use Promises::Deferred;
 
 use Sub::Exporter -setup => {
-    exports => [qw[ when ]]
+    exports => [qw[ deferred when ]]
 };
+
+sub deferred { Promises::Deferred->new; }
 
 sub when {
     my @promises = @_;
@@ -44,11 +46,11 @@ __END__
 
   use AnyEvent::HTTP;
   use JSON::XS qw[ decode_json ];
-  use Promises qw[ when ];
+  use Promises qw[ when deferred ];
 
   sub fetch_it {
       my ($uri) = @_;
-      my $d = Promises::Deferred->new;
+      my $d = deferred;
       http_get $uri => sub {
           my ($body, $headers) = @_;
           $headers->{Status} == 200
@@ -118,7 +120,7 @@ each part and explain them in order.
 
   sub fetch_it {
       my ($uri) = @_;
-      my $d = Promises::Deferred->new;
+      my $d = deferred;
       http_get $uri => sub {
           my ($body, $headers) = @_;
           $headers->{Status} == 200
@@ -131,15 +133,16 @@ each part and explain them in order.
 First is the C<fetch_it> function, the pattern within this function
 is the typical way in which you might wrap an async function call
 of some kind. The first thing we do it to create an instance of
-L<Promises::Deferred>, this is the class which does the majority
-of the work or managing callbacks and the like. Then within the
-callback for our async function, we will call methods on the
-L<Promises::Deferred> instance. In the case we first check the
-response headers to see if the request was a success, if so, then
-we call the C<resolve> method and pass the decoded JSON to it.
-If the request failed, we then call the C<reject> method and
-send back the data from the body. Finally we call the C<promise>
-method and return the promise 'handle' for this deferred instance.
+L<Promises::Deferred> using the C<deferred> function, this is the 
+class which does the majority of the work or managing callbacks 
+and the like. Then within the callback for our async function, 
+we will call methods on the L<Promises::Deferred> instance. In the 
+case we first check the response headers to see if the request was 
+a success, if so, then we call the C<resolve> method and pass the 
+decoded JSON to it. If the request failed, we then call the C<reject> 
+method and send back the data from the body. Finally we call the 
+C<promise> method and return the promise 'handle' for this deferred 
+instance.
 
 At this point out asynchronous operation will typically be in
 progress, but control has been returned to the rest of our
@@ -443,6 +446,11 @@ they bring to it.
 =head1 EXPORTS
 
 =over 4
+
+=item C<deferred>
+
+This just creates an instance of the L<Promises::Deferred> class
+it is purely for convenience.
 
 =item C<when( @promises )>
 

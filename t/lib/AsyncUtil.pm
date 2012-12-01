@@ -3,7 +3,7 @@ package AsyncUtil;
 use strict;
 use warnings;
 
-use Promises;
+use Promises qw[ deferred ];
 use AnyEvent;
 
 use Sub::Exporter -setup => {
@@ -16,7 +16,7 @@ use Sub::Exporter -setup => {
 
 sub perform_asyncly {
     my ($input, $callback) = @_;
-    my $d = Promises::Deferred->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,
@@ -30,7 +30,7 @@ sub perform_asyncly {
 
 sub delay_me {
     my $duration = shift;
-    my $d = Promises::Deferred->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => $duration,
@@ -44,7 +44,7 @@ sub delay_me {
 
 sub delay_me_error {
     my $duration = shift;
-    my $d = Promises::Deferred->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => $duration,

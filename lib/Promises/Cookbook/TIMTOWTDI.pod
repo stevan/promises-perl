@@ -1,0 +1,100 @@
+package Promises::Cookbook::TIMTOWTDI;
+
+=pod
+
+=head1 NAME
+
+Promises::Cookbook::TIMTOWTDI - Counter examples to Promises
+
+=head1 DESCRIPTION
+
+So, like I said before, Promises are a means by which you can more
+effectively manage your async operations and avoid callback spaghetti.
+But of course this is Perl and therefore there is always another way
+to do it. In this section I am going to show a few examples of other
+ways you could accomplish the same thing.
+
+=head2 Caveat
+
+Please note that I am specifically illustrating ways to do this which 
+I feel are inferior or less elegant then Promises. This is not meant 
+to be a slight on the API of other modules at all, I am simply using 
+these modules to try and illustrate other (perhaps more familiar) 
+idioms in hopes that it will help people understand Promises. 
+
+I am sure there are other ways to do some of these things and do 
+them more effectively, and I am fully willing to admit my ignorance 
+here. I welcome any patches which might illustrate said ignorance, as 
+I do not claim at all to be an expert in async programming.
+
+=head1 AnyEvent::HTTP
+
+So, enough caveating, please consider this (more traditional) version
+of our the L<Promises> SYNOPSIS example using L<AnyEvent::HTTP>.
+
+  my $cv = AnyEvent->condvar;
+
+  http_get('http://rest.api.example.com/-/product/12345', sub {
+      my ($product) = @_;
+      http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
+          my ($suggestions) = @_;
+          http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
+              my ($reviews) = @_;
+              $cv->send({
+                  product     => $product,
+                  suggestions => $suggestions,
+                  reviews     => $reviews,
+              })
+          }),
+      });
+  });
+
+  my $all_product_info = $cv->recv;
+
+Not only do we have deeply nested callbacks, but we have an enforced
+order of operations. If you wanted to try and avoid that order of
+operations, you might end up writing something like this:
+
+   my $product_cv    = AnyEvent->condvar;
+   my $suggestion_cv = AnyEvent->condvar;
+   my $review_cv     = AnyEvent->condvar;
+
+   http_get('http://rest.api.example.com/-/product/12345', sub {
+       my ($product) = @_;
+       $product_cv->send( $product );
+   });
+
+   http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
+       my ($suggestions) = @_;
+       $suggestion_cv->send( $suggestions );
+   });
+
+   http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
+       my ($reviews) = @_;
+       $reviews_cv->send( $reviews )
+   }),
+
+   my $all_product_info = {
+       product     => $product_cv->recv,
+       suggestions => $suggestions_cv->recv,
+       reviews     => $reviews_cv->recv
+   };
+
+But actually, this doesn't work either, while we do gain something by
+allowing the C<http_get> calls to be run in whatever order works best,
+we still end up still enforcing some order in the way we call C<recv>
+on our three C<condvars> (Oh yeah, and we had to create and manage three
+C<condvars> as well).
+
+NOTE: Again, if can think of a better way to do this that I missed,
+please let me know.
+
+=head1 Mojo::UserAgent
+
+... TODO
+
+=cut 
+
+__END__
+
+

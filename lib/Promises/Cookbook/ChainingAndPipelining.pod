@@ -1,0 +1,66 @@
+package Promises::Cookbook::ChainingAndPipelining;
+
+=pod
+
+=head1 NAME
+
+Promises::Cookbook::ChainingAndPipelining - Examples of chaining/pipelining of asynchronous operations
+
+=head1 SYNOPSIS
+
+  my $cv = AnyEvent->condvar;
+
+  fetch_it(
+      'http://rest.api.example.com/-/user/search?access_level=admin'
+  )->then(
+      sub {
+          my $admins = shift;
+          when(
+              map {
+                  fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
+              } @$admins
+          );
+      }
+  )->then(
+      sub { $cv->send( @_ ) },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+  my @all_admins = $cv->recv;
+
+=head1 DESCRIPTION
+
+So one of the real benefits of the Promise pattern is how it allows
+you to write code that flows and reads more like synchronous code
+by using the chaining nature of Promises. In example above we are
+first fetching a list of users whose access level is 'admin', in
+our fictional web-service we get back a list of JSON objects with
+only minimal information, just a user_id and full_name for instance.
+From here we can then loop through the results and fetch the full
+user object for each one of these users, passing all of the promises
+returned by C<fetch_it> into C<when>, which itself returns a promise.
+
+So despite being completely asynchronous, this code reads much like
+a blocking synchronous version would read, from top to bottom.
+
+  my @all_admins;
+  try {
+      my $admins = fetch_it( 'http://rest.api.example.com/-/user/search?access_level=admin' );
+      @all_admins = map {
+          fetch_it( 'http://rest.api.example.com/-/user/' . url_encode( $_->{user_id} ) )
+      } @$admins;
+  } catch {
+      die $_;
+  };
+  # do something with @all_admins ...
+
+The only difference really are the C<then> wrappers and the way in
+which we handle errors, but even that is very similar since we are
+not including an error callback in the first C<then> and allowing
+the errors to bubble till the final C<then>, which maps very closely
+to the C<try/catch> block. And of course the Promise version runs
+asynchronously and reaps all the benefits that brings.
+
+=cut
+
+__END__

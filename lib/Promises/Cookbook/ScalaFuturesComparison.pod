@@ -1,0 +1,124 @@
+package Promises::Cookbook::ScalaFuturesComparison;
+
+=pod
+
+=head1 NAME
+
+Promises::Cookbook::ScalaFuturesComparison - A comparison of Scala Futures with Promises
+
+=head1 DESCRIPTION
+
+Here is the example Scala code, it assumes a function called C<fetch> 
+which when given a URL will return a Future.
+
+    def getThumbnail(url: String): Future[Webpage] = {
+        val promise = new Promise[Webpage]
+        fetch(url) onSuccess { page =>
+            fetch(page.imageLinks(0)) onSuccess { p =>
+                promise.setValue(p)
+            } onFailure { exc =>
+                promise.setException(exc)
+            }
+        } onFailure { exc =>
+            promise.setException(exc)
+        }
+        promise
+    }
+
+If we take this and translate this into Perl code using the 
+L<Mojo::UserAgent> library, the C<fetch> function would look 
+like this:
+
+    sub fetch {
+        state $ua = Mojo::UserAgent->new;
+        my $url   = shift;
+        my $d     = deferred;
+        $ua->get($url => sub {
+            my ($ua, $tx) = @_;
+            $d->resolve( $tx );
+        });
+        $d->promise;
+    }
+
+And if we were to take the C<get_thumbnail> function and 
+translate it exactly, we would end up with this:
+
+    sub get_thumbnail {
+        my $url = shift;
+        my $d   = deferred;
+        fetch( $url )->then(
+            sub {
+                my $tx = shift;
+                fetch( $tx->res->dom->find('img')->[0]->{'src'} )->then(
+                    sub { $d->resolve( $_[0] ) },
+                    sub { $d->reject( $_[0] ) },                
+                )
+            },
+            sub { $d->reject( $_[0] ) }
+        );
+        $d->promise;
+    }
+
+Scala Futures have a method called C<flatMap>, which takes a 
+function that given value will return another Future. Here is 
+an example of how the C<getThumbnail> method can be simplified
+by using it.
+
+    def getThumbnail(url: String): Future[Webpage] =
+        fetch(url) flatMap { page =>
+             fetch(page.imageLinks(0))
+        }
+
+But since our C<then> method actually creates a new promise 
+and wraps the callbacks to chain to that promise, we don't 
+need this C<flatMap> combinator and so this, Just Works.
+
+    sub get_thumbnail {
+        my $url = shift;
+        fetch( $url )->then(
+            sub {
+                my $tx = shift;
+                fetch( $tx->res->dom->find('img')->[0]->{'src'} );
+            }        
+        );
+    }
+
+Scala Futures also have a C<rescue> method which can serve as 
+a kind of catch block that potentially will return another 
+Future.
+
+    val f = fetch(url) rescue {
+        case ConnectionFailed =>
+          fetch(url)
+        }
+
+Just as with C<flatMap>, since our callbacks are wrapped and 
+chained with a new Promise, we can do a rescue just by using 
+the error callback The Promise returned by C<fetch> will get 
+chained and so this will depend on it.
+
+    sub get_thumbnail {
+        my $url = shift;
+        fetch( $url )->then(
+            sub {
+                my $page = shift;
+                fetch( $page->image_links->[0] );
+            },
+            sub {
+                given ( $_[0] ) {
+                    when ('connection_failed') {
+                        return fetch( $url );
+                    }
+                    default {
+                        return "failed";
+                    }
+                }
+            }
+        );
+    }
+
+TODO ... figure out how retry can be generic ...
+
+=cut
+
+__END__

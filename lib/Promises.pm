@@ -87,6 +87,15 @@ asynchronous programming. Promises are meant to be a way to
 better deal with the resulting callback spaghetti that can often
 result in asynchronous programs.
 
+=head2 Relation to the various Perl event loops
+
+This module is actually Event Loop agnostic, the SYNOPSIS above
+uses L<AnyEvent::HTTP>, but that is just an example, it can work
+with any of the existing event loops out on CPAN. Over the next
+few releases I will try to add in documentation illustrating each
+of the different event loops and how best to use Promises with
+them.
+
 =head2 Relation to the Promise/A spec
 
 We are, with some differences, following the API spec called

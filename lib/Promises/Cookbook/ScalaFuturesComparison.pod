@@ -90,7 +90,7 @@ Future.
     val f = fetch(url) rescue {
         case ConnectionFailed =>
           fetch(url)
-        }
+    }
 
 Just as with C<flatMap>, since our callbacks are wrapped and 
 chained with a new Promise, we can do a rescue just by using 

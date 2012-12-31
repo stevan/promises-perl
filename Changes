@@ -1,5 +1,8 @@
 Revision history for Perl extension Promises
 
+0.03
+
+
 0.02 Saturday, Nov. 24th, 2012
     - add several predicate methods to help when
       interrogating status, this resolves RT #81278.

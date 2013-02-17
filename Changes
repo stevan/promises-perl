@@ -1,7 +1,18 @@
 Revision history for Perl extension Promises
 
-0.03
+0.03 Sunday, Feb. 17th, 2013
+    - added a `deferred` helper function to Promises.pm
 
+    - fixed the reject call in `when`
+      (thanks to rafl for this)
+        - added tests for this
+
+    - large doc reworking
+        - moved things into a cookbook
+        - added example of usage with Mojo::IOLoop
+        - added comparison with Scala futures
+            - this still needs some work, but the
+              basics are ther
 
 0.02 Saturday, Nov. 24th, 2012
     - add several predicate methods to help when

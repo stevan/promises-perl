@@ -16,15 +16,15 @@ ways you could accomplish the same thing.
 
 =head2 Caveat
 
-Please note that I am specifically illustrating ways to do this which 
-I feel are inferior or less elegant then Promises. This is not meant 
-to be a slight on the API of other modules at all, I am simply using 
-these modules to try and illustrate other (perhaps more familiar) 
-idioms in hopes that it will help people understand Promises. 
+Please note that I am specifically illustrating ways to do this which
+I feel are inferior or less elegant then Promises. This is not meant
+to be a slight on the API of other modules at all, I am simply using
+these modules to try and illustrate other (perhaps more familiar)
+idioms in hopes that it will help people understand Promises.
 
-I am sure there are other ways to do some of these things and do 
-them more effectively, and I am fully willing to admit my ignorance 
-here. I welcome any patches which might illustrate said ignorance, as 
+I am sure there are other ways to do some of these things and do
+them more effectively, and I am fully willing to admit my ignorance
+here. I welcome any patches which might illustrate said ignorance, as
 I do not claim at all to be an expert in async programming.
 
 =head1 AnyEvent::HTTP
@@ -93,7 +93,7 @@ please let me know.
 
 ... TODO
 
-=cut 
+=cut
 
 __END__
 

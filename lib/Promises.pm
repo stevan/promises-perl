@@ -29,7 +29,7 @@ sub when {
                     $all_done->resolve( @$results );
                 }
             },
-            sub { $all_done->reject }
+            sub { $all_done->reject( @_ ) },
         );
     }
 

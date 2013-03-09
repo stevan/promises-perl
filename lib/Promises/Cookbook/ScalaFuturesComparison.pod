@@ -119,6 +119,10 @@ chained and so this will depend on it.
 
 TODO ... figure out how retry can be generic ...
 
+=head1 SEE ALSO
+
+Systems Programming at Twitter - L<http://monkey.org/~marius/talks/twittersystems/>
+
 =cut
 
 __END__

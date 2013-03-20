@@ -86,6 +86,44 @@ we still end up still enforcing some order in the way we call C<recv>
 on our three C<condvars> (Oh yeah, and we had to create and manage three
 C<condvars> as well).
 
+The following example was submitted to me by James Wright (via RT #83992)
+as an alternate approach which is non-nested, uses only one condvar, and
+has no fixed-order.
+
+  my $cv = AnyEvent->condvar;
+  my ( $product, $suggestions, $reviews ) = ( [], [], [] );
+
+  $cv->begin;
+  http_get('http://rest.api.example.com/-/product/12345', sub {
+      ($product) = @_;
+      $cv->end;
+  });
+
+  $cv->begin;
+  http_get('http://rest.api.example.com/-/product/suggestions?for_sku=12345', sub {
+      ($suggestions) = @_;
+      $cv->end;
+  });
+
+  $cv->begin;
+  http_get('http://rest.api.example.com/-/product/reviews?for_sku=12345', sub {
+      ($reviews) = @_;
+      $cv->end;
+  });
+
+  $cv->cb(sub {
+      $cv->send({
+          product     => $product,
+          suggestions => $suggestions,
+          reviews     => $reviews,
+      });
+  });
+
+  my $all_product_info = $cv->recv;
+
+The only real issue I have with this approach is the semi-global variable usage
+(C<$product>, C<$suggestions> and C<$reviews>), but otherwise it works fine.
+
 NOTE: Again, if can think of a better way to do this that I missed,
 please let me know.
 

@@ -1,10 +1,8 @@
 package Promises::Cookbook::ScalaFuturesComparison;
 
+# ABSTRACT: A comparison of Scala Futures with Promises
+
 =pod
-
-=head1 NAME
-
-Promises::Cookbook::ScalaFuturesComparison - A comparison of Scala Futures with Promises
 
 =head1 DESCRIPTION
 

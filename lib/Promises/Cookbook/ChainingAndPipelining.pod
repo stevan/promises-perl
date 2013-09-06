@@ -1,10 +1,8 @@
 package Promises::Cookbook::ChainingAndPipelining;
 
+# ABSTRACT: Examples of chaining/pipelining of asynchronous operations
+
 =pod
-
-=head1 NAME
-
-Promises::Cookbook::ChainingAndPipelining - Examples of chaining/pipelining of asynchronous operations
 
 =head1 SYNOPSIS
 

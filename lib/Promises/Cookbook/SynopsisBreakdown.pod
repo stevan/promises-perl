@@ -1,10 +1,8 @@
 package Promises::Cookbook::SynopsisBreakdown;
 
+# ABSTRACT: A breakdown of the SYNOPSIS section of Promises
+
 =pod
-
-=head1 NAME
-
-Promises::Cookbook::SynopsisBreakdown - A breakdown of the SYNOPSIS section of Promises
 
 =head1 SYNOPSIS
 

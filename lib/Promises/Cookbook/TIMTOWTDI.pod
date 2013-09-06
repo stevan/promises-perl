@@ -1,10 +1,8 @@
 package Promises::Cookbook::TIMTOWTDI;
 
+# ABSTRACT: Counter examples to Promises
+
 =pod
-
-=head1 NAME
-
-Promises::Cookbook::TIMTOWTDI - Counter examples to Promises
 
 =head1 DESCRIPTION
 

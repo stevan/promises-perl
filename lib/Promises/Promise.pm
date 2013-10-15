@@ -23,8 +23,6 @@ sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled   }
 sub is_failed      { (shift)->{'deferred'}->is_failed      }
 
 sub is_in_progress { (shift)->{'deferred'}->is_in_progress }
-sub is_resolving   { (shift)->{'deferred'}->is_resolving   }
-sub is_rejecting   { (shift)->{'deferred'}->is_rejecting   }
 sub is_resolved    { (shift)->{'deferred'}->is_resolved    }
 sub is_rejected    { (shift)->{'deferred'}->is_rejected    }
 

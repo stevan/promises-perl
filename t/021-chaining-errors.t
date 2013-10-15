@@ -69,11 +69,11 @@ Promises::Deferred->new->reject("bar")->then(
         "foo";
     }
 )->then(
-    sub { fail("This should never be called") },
     sub {
         my $result = shift;
-        is($result, "foo", "... chained-reject foo");
-    }
+        is($result, "foo", "... error handler returns foo");
+    },
+    sub { fail("This should never be called, previous error handler returned value") },
 );
 
 done_testing;

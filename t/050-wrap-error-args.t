@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Promises 'when';
 use Test::More 0.89;
-use Test::Fatal;
+use Test::Exception;
 
 sub do_it {
     my $d = Promises::Deferred->new;
@@ -12,25 +12,29 @@ sub do_it {
 }
 
 {
-    my $e = exception {
-        do_it->then(
+    my $p;
+    lives_ok {
+        $p = do_it->then(
             sub { die { success => \@_ } },
             sub { die { fail    => \@_ } },
         );
-    };
+    } "Exception was handled";
 
-    is_deeply $e, { fail => ['fail'] };
+    is $p->status, Promises::Deferred->REJECTED, "Promise was rejected";
+    is_deeply $p->result, [{ fail => ['fail'] }];
 }
 
 {
-    my $e = exception {
-        when(do_it)->then(
+    my $p;
+    lives_ok {
+        $p = when(do_it)->then(
             sub { die { success => \@_ } },
             sub { die { fail    => \@_ } },
         );
-    };
+    } "Exception was handled";
 
-    is_deeply $e, { fail => ['fail'] };
+    is $p->status, Promises::Deferred->REJECTED, "Promise was rejected";
+    is_deeply $p->result, [{ fail => ['fail'] }];
 }
 
 done_testing;

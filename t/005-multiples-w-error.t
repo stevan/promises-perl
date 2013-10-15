@@ -39,7 +39,7 @@ is_deeply(
     [
         'ERROR',
         'rejected after 1',
-        Promises::Deferred->REJECTING,
+        Promises::Deferred->REJECTED,
         [ 'rejected after 1' ]
     ],
     '... got the expected values back'
@@ -52,7 +52,7 @@ is_deeply(
     [
         'ONE',
         'resolved after 2',
-        Promises::Deferred->RESOLVING,
+        Promises::Deferred->RESOLVED,
         [ 'resolved after 2' ]
     ],
     '... got the expected values back'

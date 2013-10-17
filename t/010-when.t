@@ -10,7 +10,7 @@ use AnyEvent;
 use AsyncUtil qw[ delay_me ];
 
 BEGIN {
-    use_ok('Promises', 'when');
+    use_ok('Promises', 'collect');
 }
 
 my $cv = AnyEvent->condvar;
@@ -18,7 +18,7 @@ my $cv = AnyEvent->condvar;
 my $p0 = delay_me( 1 );
 my $p1 = delay_me( 2 );
 
-when( $p0, $p1 )->then(
+collect( $p0, $p1 )->then(
     sub { $cv->send( @_ ) },
     sub { $cv->croak( 'ERROR' ) }
 );

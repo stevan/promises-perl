@@ -1,5 +1,13 @@
 Revision history for Perl extension Promises
 
+0.04 Thursday, Oct. 17, 2013
+    *** DEPRECATION WARNING ***
+    - The 'when' helper in Promises.pm is being
+      deprecated because it clashes with the
+      perl keyword. See RT #84024 for more info.
+    - 'when' renamed to 'collect'
+        - tests and docs adjusted accordingly
+
 0.03 Sunday, Feb. 17th, 2013
     - added a `deferred` helper function to Promises.pm
 

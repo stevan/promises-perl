@@ -10,7 +10,7 @@ use AnyEvent;
 use AsyncUtil qw[ delay_me delay_me_error ];
 
 BEGIN {
-    use_ok('Promises', 'when');
+    use_ok('Promises', 'collect');
 }
 
 my $cv = AnyEvent->condvar;
@@ -18,7 +18,7 @@ my $cv = AnyEvent->condvar;
 my $p0 = delay_me_error( 1 );
 my $p1 = delay_me( 2 );
 
-when( $p0, $p1 )->then(
+collect( $p0, $p1 )->then(
     sub { $cv->croak( 'We are expecting an error here, so this shouldn\'t be called' ) },
     sub { $cv->send( 'ERROR' ) }
 );

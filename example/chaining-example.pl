@@ -6,7 +6,7 @@ use warnings;
 use AnyEvent::HTTP;
 use JSON::XS qw[ decode_json ];
 use URL::Encode qw[ url_encode ];
-use Promises qw[ when ];
+use Promises qw[ collect ];
 
 sub fetch_it {
     my ($uri) = @_;
@@ -22,7 +22,7 @@ fetch_it(
 )->then(
     sub {
         my $data = shift;
-        when(
+        collect(
             map {
                 fetch_it(
                     'http://en.wikipedia.org/w/api.php?action=query&format=json&titles='

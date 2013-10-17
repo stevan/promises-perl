@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Promises 'when';
+use Promises 'collect';
 use Test::More 0.89;
 use Test::Fatal;
 
@@ -24,7 +24,7 @@ sub do_it {
 
 {
     my $e = exception {
-        when(do_it)->then(
+        collect(do_it)->then(
             sub { die { success => \@_ } },
             sub { die { fail    => \@_ } },
         );

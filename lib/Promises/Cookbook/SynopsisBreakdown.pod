@@ -8,7 +8,7 @@ package Promises::Cookbook::SynopsisBreakdown;
 
   use AnyEvent::HTTP;
   use JSON::XS qw[ decode_json ];
-  use Promises qw[ when deferred ];
+  use Promises qw[ collect deferred ];
 
   sub fetch_it {
       my ($uri) = @_;
@@ -24,7 +24,7 @@ package Promises::Cookbook::SynopsisBreakdown;
 
   my $cv = AnyEvent->condvar;
 
-  when(
+  collect(
       fetch_it('http://rest.api.example.com/-/product/12345'),
       fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
       fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
@@ -44,8 +44,8 @@ package Promises::Cookbook::SynopsisBreakdown;
 
 =head1 DESCRIPTION
 
-The example in the synopsis actually demonstrates a number of the 
-features of this module, this section will break down each part 
+The example in the synopsis actually demonstrates a number of the
+features of this module, this section will break down each part
 and explain them in order.
 
   sub fetch_it {
@@ -63,15 +63,15 @@ and explain them in order.
 First is the C<fetch_it> function, the pattern within this function
 is the typical way in which you might wrap an async function call
 of some kind. The first thing we do it to create an instance of
-L<Promises::Deferred> using the C<deferred> function, this is the 
-class which does the majority of the work or managing callbacks 
-and the like. Then within the callback for our async function, 
-we will call methods on the L<Promises::Deferred> instance. In the 
-case we first check the response headers to see if the request was 
-a success, if so, then we call the C<resolve> method and pass the 
-decoded JSON to it. If the request failed, we then call the C<reject> 
-method and send back the data from the body. Finally we call the 
-C<promise> method and return the promise 'handle' for this deferred 
+L<Promises::Deferred> using the C<deferred> function, this is the
+class which does the majority of the work or managing callbacks
+and the like. Then within the callback for our async function,
+we will call methods on the L<Promises::Deferred> instance. In the
+case we first check the response headers to see if the request was
+a success, if so, then we call the C<resolve> method and pass the
+decoded JSON to it. If the request failed, we then call the C<reject>
+method and send back the data from the body. Finally we call the
+C<promise> method and return the promise 'handle' for this deferred
 instance.
 
 At this point out asynchronous operation will typically be in
@@ -173,11 +173,11 @@ to actually create that C<condvar>.
   my $cv = AnyEvent->condvar;
 
 Next, we jump back into the land of Promises. Now I am breaking apart
-the calling of C<when> and the subsequent chained C<then> call here
+the calling of C<collect> and the subsequent chained C<then> call here
 to help keep things in digestible chunks, but also to illustrate that
-C<when> just returns a promise (as you might have guessed anyway).
+C<collect> just returns a promise (as you might have guessed anyway).
 
-  my $p = when(
+  my $p = collect(
       fetch_it('http://rest.api.example.com/-/product/12345'),
       fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
       fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
@@ -185,13 +185,13 @@ C<when> just returns a promise (as you might have guessed anyway).
 
 So, what is going on here is that we want to be able to run multiple
 async operations in parallel, but we need to wait for all of them to
-complete before we can move on, and C<when> gives us that ability.
+complete before we can move on, and C<collect> gives us that ability.
 As we know from above, C<fetch_it> is returning a promise, so obviously
-C<when> takes an array of promises as its parameters. As we said before
-C<when> also returns a promise, which is just a handle on a
+C<collect> takes an array of promises as its parameters. As we said before
+C<collect> also returns a promise, which is just a handle on a
 C<Promises::Deferred> instance it created to watch and handle the
 multiple promises you passed it. Okay, so now lets move onto adding
-callbacks to our promise that C<when> returned to us.
+callbacks to our promise that C<collect> returned to us.
 
   $p->then(
       sub {
@@ -208,9 +208,9 @@ callbacks to our promise that C<when> returned to us.
 So, you will notice that, as before, we provide a success and an error
 callback, but you might notice one slight difference in the success
 callback. It is actually being passed multiple arguments, these are
-the results of the three C<fetch_it> calls passed into C<when>, and yes,
+the results of the three C<fetch_it> calls passed into C<collect>, and yes,
 they are passed to the callback in the same order you passed them into
-C<when>. So from here we jump back into the world of C<condvars>, and
+C<collect>. So from here we jump back into the world of C<condvars>, and
 we call the C<send> method and pass it our newly assembled set of
 collected product info. As I said above, C<condvars> are a way of
 wrapping your async operations into a transaction like block, when

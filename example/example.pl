@@ -5,7 +5,7 @@ use warnings;
 
 use AnyEvent::HTTP;
 use JSON::XS qw[ decode_json ];
-use Promises qw[ when ];
+use Promises qw[ collect ];
 
 sub fetch_it {
     my ($uri) = @_;
@@ -16,7 +16,7 @@ sub fetch_it {
 
 my $cv = AnyEvent->condvar;
 
-when(
+collect(
     map { fetch_it('http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=' . $_) } @ARGV
 )->then(
     sub { $cv->send( @_ ) },

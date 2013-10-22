@@ -17,17 +17,14 @@ use constant REJECTING   => 'rejecting';
 
 sub new {
     my $class = shift;
-    my $self  = bless {
+    bless {
         resolved => [],
         rejected => [],
-        status   => IN_PROGRESS,
-        promise  => undef
+        status   => IN_PROGRESS
     } => $class;
-    $self->{'promise'} = Promises::Promise->new( $self );
-    $self;
 }
 
-sub promise { (shift)->{'promise'} }
+sub promise { Promises::Promise->new( shift ) }
 sub status  { (shift)->{'status'}  }
 sub result  { (shift)->{'result'}  }
 
@@ -161,7 +158,8 @@ This will construct an instance, it takes no arguments.
 =item C<promise>
 
 This will return a L<Promises::Promise> that can be used
-as a handle for this object.
+as a handle for this object. It will return a new one
+every time it is called.
 
 =item C<status>
 

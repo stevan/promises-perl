@@ -3,6 +3,11 @@ Revision history for Perl extension Promises
 0.05
     - catch exceptions in any callback and
       call reject if they happen
+    - the 'promise' method on deferred objects
+      will now return a new Promises::Promise
+      instance each time it is called
+        - this prevents the memory cycle we
+          originally had
 
 0.04 Thursday, Oct. 17, 2013
     *** DEPRECATION WARNING ***

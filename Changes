@@ -1,5 +1,9 @@
 Revision history for Perl extension Promises
 
+0.05
+    - catch exceptions in any callback and
+      call reject if they happen
+
 0.04 Thursday, Oct. 17, 2013
     *** DEPRECATION WARNING ***
     - The 'when' helper in Promises.pm is being

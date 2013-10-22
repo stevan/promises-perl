@@ -99,8 +99,11 @@ sub then {
 sub _wrap {
     my ($self, $d, $f, $method) = @_;
     return sub {
-        my @results = $f->( @_ );
-        if ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
+        local $@;
+        my @results = do { $f->( @_ ) };
+        if ($@) {
+            $d->reject( $@ );
+        } elsif ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
             $results[0]->then(
                 sub { $d->resolve( @{ $results[0]->result } ) },
                 sub { $d->reject( @{ $results[0]->result } )  },

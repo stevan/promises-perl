@@ -1,6 +1,6 @@
 Revision history for Perl extension Promises
 
-0.05
+0.05 Monday, Dec. 23, 2013
     - catch exceptions in any callback and
       call reject if they happen
     - the 'promise' method on deferred objects

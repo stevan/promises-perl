@@ -46,7 +46,6 @@ sub resolve {
     $self->{'result'} = $result;
     $self->{'status'} = RESOLVING;
     $self->_notify( $self->{'resolved'}, $result );
-    $self->{'resolved'} = [];
     $self->{'status'}   = RESOLVED;
     $self;
 }
@@ -57,7 +56,6 @@ sub reject {
     $self->{'result'} = $result;
     $self->{'status'} = REJECTING;
     $self->_notify( $self->{'rejected'}, $result );
-    $self->{'rejected'} = [];
     $self->{'status'}   = REJECTED;
     $self;
 }
@@ -85,8 +83,7 @@ sub then {
     if ( $self->status eq RESOLVED ) {
         $self->resolve( @{ $self->result } );
     }
-
-    if ( $self->status eq REJECTED ) {
+    elsif ( $self->status eq REJECTED ) {
         $self->reject( @{ $self->result } );
     }
 
@@ -115,6 +112,9 @@ sub _wrap {
 sub _notify {
     my ($self, $callbacks, $result) = @_;
     $_->( @$result ) foreach @$callbacks;
+    $self->{'resolved'} = [];
+    $self->{'rejected'} = [];
+
 }
 
 1;

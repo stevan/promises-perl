@@ -1,0 +1,56 @@
+package Promises::Deferred::EV;
+# ABSTRACT: An implementation of Promises in Perl
+
+use strict;
+use warnings;
+
+use EV;
+
+use parent 'Promises::Deferred';
+
+sub _notify {
+    my ( $self, $callbacks, $result ) = @_;
+
+    my $w; $w = EV::timer( 0, 0, sub {
+        foreach my $cb (@$callbacks) {
+            $cb->(@$result);
+        }
+        undef $w;
+    });
+
+    # NOTE:
+    # Not sure which is better, the above,
+    # or this below, I am leaning towards
+    # the above since it is sort of closer
+    # to how AnyEvent actually implements
+    # postpone.
+    # - SL
+    #
+    # foreach my $cb (@$callbacks) {
+    #     my $w; $w = EV::timer( 0, 0, sub { $cb->(@$result); undef $w } );
+    # }
+
+    $self->{'resolved'} = [];
+    $self->{'rejected'} = [];
+
+}
+
+1;
+
+__END__
+
+=head1 SYNOPSIS
+
+    use Promises backend => ['EV'], qw[ deferred collect ];
+
+    # ... everything else is the same
+
+=head1 DESCRIPTION
+
+The "Promise/A+" spec strongly suggests that the callbacks
+given to C<then> should be run asynchronously (meaning in the
+next turn of the event loop), this module provides support for
+doing so using the L<EV> module.
+
+=back
+

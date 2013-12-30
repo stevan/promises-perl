@@ -1,5 +1,4 @@
 package Promises;
-
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -141,9 +140,13 @@ practices are not the same as Javascript idioms and best
 practices. However, the one important difference that should be
 noted is that "Promise/A+" strongly suggests that the callbacks
 given to C<then> should be run asynchronously (meaning in the
-next turn of the event loop). We do not do this because doing
-so would bind us to a given event loop implementation, which
-we very much want to avoid.
+next turn of the event loop). We do not do this by default,
+because doing so would bind us to a given event loop
+implementation, which we very much want to avoid. However we
+now allow you to specify an event loop "backend" when using
+Promises, and assuming a Deferred backend has been written
+it will provide this feature accordingly. See
+L<Promises::Deferred::AE> for an example of this.
 
 =head2 Relation to Promises/Futures in Scala
 

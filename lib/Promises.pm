@@ -1,4 +1,5 @@
 package Promises;
+
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -7,45 +8,67 @@ use warnings;
 use Promises::Deferred;
 
 use Sub::Exporter -setup => {
-    exports => [
-        qw[ deferred collect ],
-        'when' => sub {
+    collectors => ['backend'],
+    exports    => [
+        'deferred' => \'_build_deferred',
+        'collect'  => \'_build_collect',
+        'when'     => sub {
+            my $class = shift;
             warn "The 'when' subroutine is deprecated, please use 'collect' instead.";
-            return \&collect;
-        }
+            return $class->_build_collect(@_);
+        },
     ]
 };
 
-sub deferred { Promises::Deferred->new; }
+sub _build_backend {
+    my ( $class, $col ) = @_;
+    my $backend = $col->{backend} or return 'Promises::Deferred';
+    $backend = $backend->[0];
 
-sub collect {
-    my @promises = @_;
-
-    my $all_done  = Promises::Deferred->new;
-    my $results   = [];
-    my $remaining = scalar @promises;
-
-    foreach my $i ( 0 .. $#promises ) {
-        my $p = $promises[$i];
-        $p->then(
-            sub {
-                $results->[$i] = [ @_ ];
-                $remaining--;
-                if ( $remaining == 0 && $all_done->status ne $all_done->REJECTED ) {
-                    $all_done->resolve( @$results );
-                }
-            },
-            sub { $all_done->reject( @_ ) },
-        );
+    unless ( $backend =~ s/^\+// ) {
+        $backend = 'Promises::Deferred::' . $backend;
     }
-
-    $all_done->resolve( @$results ) if $remaining == 0;
-
-    $all_done->promise;
+    require Module::Runtime;
+    return Module::Runtime::use_module($backend);
 }
 
-# keep back compat ... for now
-*when = \&collect;
+sub _build_deferred {
+    my ( $class, $name, $args, $col ) = @_;
+    my $backend = $class->_build_backend($col);
+    return sub { $backend->new }
+}
+
+sub _build_collect {
+    my ( $class, $name, $args, $col ) = @_;
+    my $backend = $class->_build_backend($col);
+    return sub {
+        my @promises = @_;
+
+        my $all_done  = $backend->new;
+        my $results   = [];
+        my $remaining = scalar @promises;
+
+        foreach my $i ( 0 .. $#promises ) {
+            my $p = $promises[$i];
+            $p->then(
+                sub {
+                    $results->[$i] = [@_];
+                    $remaining--;
+                    if (   $remaining == 0
+                        && $all_done->status ne $all_done->REJECTED )
+                    {
+                        $all_done->resolve(@$results);
+                    }
+                },
+                sub { $all_done->reject(@_) },
+            );
+        }
+
+        $all_done->resolve(@$results) if $remaining == 0;
+
+        $all_done->promise;
+    };
+}
 
 1;
 

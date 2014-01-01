@@ -1,5 +1,18 @@
 Revision history for Perl extension Promises
 
+0.06
+    - make sure to clear both resolved and
+      rejected callbacks after resolution,
+      thanks to clinton gormley for this.
+    - add event-loop specific backends to
+      allow promises to be resolved in an
+      async manner (as Promises/A+ suggests)
+      - thanks to clinton gormley for
+        starting this feature
+      - backend created for AE, AnyEvent
+        and EV
+      - tests added
+
 0.05 Monday, Dec. 23, 2013
     - catch exceptions in any callback and
       call reject if they happen

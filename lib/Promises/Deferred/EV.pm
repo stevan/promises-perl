@@ -18,18 +18,6 @@ sub _notify {
         undef $w;
     });
 
-    # NOTE:
-    # Not sure which is better, the above,
-    # or this below, I am leaning towards
-    # the above since it is sort of closer
-    # to how AnyEvent actually implements
-    # postpone.
-    # - SL
-    #
-    # foreach my $cb (@$callbacks) {
-    #     my $w; $w = EV::timer( 0, 0, sub { $cb->(@$result); undef $w } );
-    # }
-
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 

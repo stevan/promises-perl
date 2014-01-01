@@ -10,9 +10,11 @@ use parent 'Promises::Deferred';
 
 sub _notify {
     my ( $self, $callbacks, $result ) = @_;
-    foreach my $cb (@$callbacks) {
-        AnyEvent::postpone { $cb->(@$result) };
-    }
+    AnyEvent::postpone {
+        foreach my $cb (@$callbacks) {
+            $cb->(@$result);
+        }
+    };
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 

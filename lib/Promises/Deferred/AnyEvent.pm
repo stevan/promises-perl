@@ -37,5 +37,18 @@ given to C<then> should be run asynchronously (meaning in the
 next turn of the event loop), this module provides support for
 doing so using the L<AnyEvent> module.
 
+Module authors should not care which event loop will be used but
+instead should just the Promises module directly:
+
+    package MyClass;
+
+    use Promises qw(deferred collect);
+
+End users of the module can specify which backend to use at the start of
+the application:
+
+    use Promises -backend => ['AnyEvent'];
+    use MyClass;
+
 =back
 

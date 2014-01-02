@@ -1,73 +1,70 @@
 package Promises;
+
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
 use warnings;
 
 use Promises::Deferred;
+our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
-    collectors => ['backend'],
+    collectors => [ 'backend' => \'_set_backend' ],
     exports    => [
-        'deferred' => \'_build_deferred',
-        'collect'  => \'_build_collect',
-        'when'     => sub {
-            my $class = shift;
-            warn "The 'when' subroutine is deprecated, please use 'collect' instead.";
-            return $class->_build_collect(@_);
-        },
+        qw[ deferred collect ],
+        'when' => sub {
+            warn
+                "The 'when' subroutine is deprecated, please use 'collect' instead.";
+            return \&collect;
+            }
     ]
 };
 
-sub _build_backend {
-    my ( $class, $col ) = @_;
-    my $backend = $col->{backend} or return 'Promises::Deferred';
-    $backend = $backend->[0];
+sub _set_backend {
+    my ( $class, $arg ) = @_;
+    my $backend = $arg->[0] or return;
 
     unless ( $backend =~ s/^\+// ) {
         $backend = 'Promises::Deferred::' . $backend;
     }
     require Module::Runtime;
-    return Module::Runtime::use_module($backend);
+    $Backend = Module::Runtime::use_module($backend) || return;
+    return 1;
+
 }
 
-sub _build_deferred {
-    my ( $class, $name, $args, $col ) = @_;
-    my $backend = $class->_build_backend($col);
-    return sub { $backend->new }
+sub deferred { $Backend->new; }
+
+sub collect {
+    my @promises = @_;
+
+    my $all_done  = $Backend->new;
+    my $results   = [];
+    my $remaining = scalar @promises;
+
+    foreach my $i ( 0 .. $#promises ) {
+        my $p = $promises[$i];
+        $p->then(
+            sub {
+                $results->[$i] = [@_];
+                $remaining--;
+                if (   $remaining == 0
+                    && $all_done->status ne $all_done->REJECTED )
+                {
+                    $all_done->resolve(@$results);
+                }
+            },
+            sub { $all_done->reject(@_) },
+        );
+    }
+
+    $all_done->resolve(@$results) if $remaining == 0;
+
+    $all_done->promise;
 }
 
-sub _build_collect {
-    my ( $class, $name, $args, $col ) = @_;
-    my $backend = $class->_build_backend($col);
-    return sub {
-        my @promises = @_;
-
-        my $all_done  = $backend->new;
-        my $results   = [];
-        my $remaining = scalar @promises;
-
-        foreach my $i ( 0 .. $#promises ) {
-            my $p = $promises[$i];
-            $p->then(
-                sub {
-                    $results->[$i] = [@_];
-                    $remaining--;
-                    if (   $remaining == 0
-                        && $all_done->status ne $all_done->REJECTED )
-                    {
-                        $all_done->resolve(@$results);
-                    }
-                },
-                sub { $all_done->reject(@_) },
-            );
-        }
-
-        $all_done->resolve(@$results) if $remaining == 0;
-
-        $all_done->promise;
-    };
-}
+# keep back compat ... for now
+*when = \&collect;
 
 1;
 
@@ -145,8 +142,43 @@ because doing so would bind us to a given event loop
 implementation, which we very much want to avoid. However we
 now allow you to specify an event loop "backend" when using
 Promises, and assuming a Deferred backend has been written
-it will provide this feature accordingly. See
-L<Promises::Deferred::AE> for an example of this.
+it will provide this feature accordingly.
+
+=head2 Using a Deferred backend
+
+As mentioned above, the default Promises::Deferred class calls the
+success or error C<then()> callback synchronously, because it isn't
+tied to a particular event loop.  However, it is recommended that you
+use the appropriate Deferred backend for whichever event loop you are
+running.
+
+Typically an application uses a single event loop, so all Promises
+should use the same event-loop. Module implementers should just use the
+Promises class directly:
+
+    package MyClass;
+    use Promises qw(deferred collected);
+
+End users should specify which Deferred backend they wish to use. For
+instance if you are using AnyEvent, you can do:
+
+    use Promises backend => ['AnyEvent'];
+    use MyClass;
+
+The Promises returned by MyClass will automatically use whichever
+event loop AnyEvent is using.
+
+See:
+
+=over 1
+
+=item * L<Promises::Deferred::AE>
+
+=item * L<Promises::Deferred::AnyEvent>
+
+=item * L<Promises::Deferred::EV>
+
+=back
 
 =head2 Relation to Promises/Futures in Scala
 

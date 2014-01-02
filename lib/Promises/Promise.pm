@@ -14,9 +14,10 @@ sub new {
     bless { 'deferred' => $deferred } => $class;
 }
 
-sub then    { (shift)->{'deferred'}->then( @_ ) }
-sub status  { (shift)->{'deferred'}->status     }
-sub result  { (shift)->{'deferred'}->result     }
+sub then            { (shift)->{'deferred'}->then( @_ )         }
+sub then_discard    { (shift)->{'deferred'}->then_discard( @_ ) }
+sub status          { (shift)->{'deferred'}->status             }
+sub result          { (shift)->{'deferred'}->result             }
 
 sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
 sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled   }
@@ -60,6 +61,10 @@ object to proxy.
 =item C<then( $callback, $error )>
 
 This calls C<then> on the proxied L<Promises::Deferred> instance.
+
+=item C<then_discard( $callback, $error )>
+
+This calls C<then_discard> on the proxied L<Promises::Deferred> instance.
 
 =item C<status>
 

@@ -9,33 +9,32 @@ package Promises::Cookbook::Recursion;
     package MyClass;
 
     use Promises backend => ['AE'], 'deferred';
-    use Scalar::Util qw(weaken);
 
-    sub new         {...}
-    sub process     {...}
-    sub is_finished {...}
-    sub fetch_next  {...} # returns a promise
+    sub new                 {...}
+    sub process             {...}
+    sub is_finished         {...}
+    sub fetch_next_from_db  {...} # returns a promise
 
     sub fetch_all {
-        my $self = shift;
-        my $d    = deferred;
+        my $self     = shift;
+        my $deferred = deferred;
 
-        my $weak_loop;
-        my $loop = sub {
-            if ( $self->is_finished ) {
-                $d->resolve;
-                return;
-            }
-            $self->fetch_next
-                ->then( sub { $self->process(@_) } )
-                ->then_discard(
-                    $weak_loop,
-                    sub { $d->reject(@_) }
-                );
-        };
-        weaken( $weak_loop = $loop );
-        $loop->();
-        return $d->promise;
+        $self->_fetch_loop($deferred);
+        return $deferred->promise;
+    }
+
+    sub _fetch_loop {
+        my ($self,$deferred) = @_;
+        if ( $self->is_finished ) {
+            $deferred->resolve;
+            return
+        }
+        $self->fetch_next_from_db
+             ->then( sub { $self->process(@_) })
+             ->finalize(
+                sub { $self->_fetch_loop($deferred) }
+                sub { $deferred->reject(@_) }
+             );
     }
 
     package main;
@@ -96,64 +95,58 @@ process completed successfully or not.  Each execution of steps 1 to
 4 is independent. Step 1 does not need to receive the return value
 from step 4.
 
-We can break the chain by using C<then_discard()> instead of C<then()>.
+We can break the chain by using C<finalize()> instead of C<then()>.
 While C<then()> returns a new C<promise> to continue the chain,
-C<then_discard()> will execute either the success callback or the
-error callback and discard the return result, rolling back the stack.
+C<finalize()> will execute either the success callback or the
+error callback and return an empty list, breaking the chain and
+rolling back the stack.
 
 To work through the code in the L</SYNOPSIS>:
 
     sub fetch_all {
-        my $self = shift;
-        my $d    = deferred;
+        my $self     = shift;
+        my $deferred = deferred;
 
-The deferred C<$d> will be used to signal success or failure of the
-C<fetch_all()> method.
+        $self->_fetch_loop($deferred);
+        return $deferred->promise;
+    }
 
-        my $weak_loop;
-        my $loop = sub {
-            if ( $self->is_finished ) {
-                $d->resolve;
-                return;
-            }
+The C<$deferred> variable (and the promise that we return to the caller)
+will either be resolved once all results have been fetched and
+processed by the C<_fetch_loop()>, or rejected if an error occurs at
+any stage of execution.
+
+    sub _fetch_loop {
+        my ($self,$deferred) = @_;
+
+        if ( $self->is_finished ) {
+            $deferred->resolve;
+            return;
+        }
 
 If C<is_finished> returns a true value (eg there are no more results to fetch),
-then we can resolve our promise, indicating success and exit the loop.
+then we can resolve our promise, indicating success, and exit the loop.
 
-            $self->fetch_next
-                ->then( sub { $self->process(@_) } )
-                ->then_discard(
-                    $weak_loop,
-                    sub { $d->reject(@_) }
-                );
-
-Otherwise we fetch the next page of results and process them. If either of these steps
-fail, then we signal failure by rejecting our deferred promise and exiting the loop.
-If there is no failure, we recurse back into our loop.  However, this recursion happens
-asynchronously in the event loop, so what this code actually does is schedule
-another call to C<$loop> and exits the current execution of C<$loop>, discarding
-any return results.
-
-
-        };
-
-        weaken( $weak_loop = $loop );
-
-If we had used the C<$loop> variable inside the C<$loop> itself, we would have a
-cyclic reference which could never be freed.  By using the weakend C<$weak_loop>
-instead, Perl can clean up the C<$loop> variable correctly once it is no longer
-in use.
-
-We have to call the C<$loop> once to start the first execution:
-
-        $loop->();
-
-And we return a C<promise> to our caller, which will either be resolved once
-all results have been fetched and processed, or rejected if an error happens
-at any stage of execution.
-
-        return $d->promise;
+        $self->fetch_next_from_db
+             ->then( sub { $self->process(@_) })
+             ->finalize(
+                sub { $self->_fetch_loop($deferred) }
+                sub { $deferred->reject(@_) }
+             );
     }
+
+Otherwise we fetch the next page of results aynchronously from the DB and
+process them. If either of these steps (fetching or processing) fails,
+then we signal failure by rejecting our deferred promise and exiting the loop.
+If there is no failure, we recurse back into our loop by calling
+C<_fetch_loop()> again.
+
+However,this recursion happens asynchronously. What this code actually does
+is to schedule the call to C<_fetch_loop()> in the next tick of the event
+loop. And because we used C<finalize()> instead of C<then()>, we don't
+wait around for the return result but instead return immediately,
+exiting the current execution, discarding the return results and
+rolling back the stack.
 
 =cut
 

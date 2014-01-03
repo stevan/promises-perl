@@ -215,6 +215,11 @@ One of the key benefits of Promises is that it retains much of
 the flow of a syncronous program, this entry illustrates that
 and compares it with a syncronous (or blocking) version.
 
+=item L<Promises::Cookbook::Recursion>
+
+This entry explains how to keep the stack under control when
+using Promises recursively.
+
 =item L<Promises::Cookbook::ScalaFuturesComparison>
 
 This entry takes some examples of Futures in the Scala language

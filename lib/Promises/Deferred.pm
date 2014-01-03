@@ -90,6 +90,33 @@ sub then {
     $d->promise;
 }
 
+sub finalize {
+    my ($self, $callback, $error) = @_;
+
+    (ref $callback && reftype $callback eq 'CODE')
+        || confess "You must pass in a success callback";
+
+    (ref $error && reftype $error eq 'CODE')
+        || confess "You must pass in a error callback"
+            if $error;
+
+    # if we don't get an error
+    # handler, we need to chain
+    # it automatically
+    $error ||= sub { @_ };
+
+    push @{ $self->{'resolved'} } => $callback;
+    push @{ $self->{'rejected'} } => $error;
+
+    if ( $self->status eq RESOLVED ) {
+        $self->resolve( @{ $self->result } );
+    }
+    elsif ( $self->status eq REJECTED ) {
+        $self->reject( @{ $self->result } );
+    }
+    ();
+}
+
 sub _wrap {
     my ($self, $d, $f, $method) = @_;
     return sub {
@@ -196,6 +223,20 @@ and no C<$error> is specified, we will attempt to bubble
 the error to the next link in the chain. This allows
 error handling to be consolidated at the point in the
 chain where it makes the most sense.
+
+=item C<finalize( $callback, ?$error )>
+
+This method is used to register two callbacks, the first
+C<$callback> will be called on success and it will be
+passed all the values that were sent to the corresponding
+call to C<resolve>. The second, C<$error> is optional and
+will be called on error, and will be passed the all the
+values that were sent to the corresponding C<reject>.
+
+Unlike the C<then()> method, C<finalize()> returns an
+empty list specifically to break the chain and to avoid
+deep recursion.  See the explanation in
+L<Promises::Cookbook::Recursion>.
 
 =item C<resolve( @args )>
 

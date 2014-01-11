@@ -178,6 +178,8 @@ See:
 
 =item * L<Promises::Deferred::EV>
 
+=item * L<Promises::Deferred::Mojo>
+
 =back
 
 =head2 Relation to Promises/Futures in Scala

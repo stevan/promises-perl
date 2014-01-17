@@ -1,6 +1,6 @@
 Revision history for Perl extension Promises
 
-0.06
+0.06 Friday, Jan. 17, 2014
     - make sure to clear both resolved and
       rejected callbacks after resolution,
       thanks to clinton gormley for this.
@@ -11,7 +11,14 @@ Revision history for Perl extension Promises
         starting this feature
       - backend created for AE, AnyEvent
         and EV
+      - backend for Mojo::IOLoop, thanks
+        to clinton gormley for this
       - tests added
+    - add in finalize() operator for ending
+      a chain of promises (see docs for more
+      info)
+      - thanks to clinton gormley for this
+        feature, docs and tests
 
 0.05 Monday, Dec. 23, 2013
     - catch exceptions in any callback and

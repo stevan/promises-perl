@@ -5,7 +5,11 @@ use warnings;
 
 use Test::More;
 
-use EV;
+BEGIN {
+    if (!eval { require EV; EV->import; 1 }) {
+        plan skip_all => "EV is required for this test";
+    }
+}
 
 use Promises backend => ['EV'], 'deferred';
 

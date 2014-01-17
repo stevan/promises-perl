@@ -5,7 +5,11 @@ use warnings;
 
 use Test::More;
 
-use Mojo::IOLoop;;
+BEGIN {
+    if (!eval { require Mojo::IOLoop; Mojo::IOLoop->import; 1 }) {
+        plan skip_all => "Mojo::IOLoop is required for this test";
+    }
+}
 
 use Promises backend => ['Mojo'], 'deferred';
 

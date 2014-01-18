@@ -1,5 +1,12 @@
 Revision history for Perl extension Promises
 
+0.07 Saturday, Jan. 18, 2014
+    - fixing a issues with localizing
+      exceptions that were found by CPAN
+      testers
+      - thanks to clinton gormley for
+        providing the fix for this
+
 0.06 Friday, Jan. 17, 2014
     - make sure to clear both resolved and
       rejected callbacks after resolution,

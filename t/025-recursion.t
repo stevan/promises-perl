@@ -61,7 +61,7 @@ sub test_loop {
         a_promise($class)
 
             # should we fail
-            ->then( sub { $@ = ( $fail && $Iter == 1 ) } )
+            ->then( sub { die if $fail && $Iter == 1 } )
 
             # noop
             ->then( sub {@_} )

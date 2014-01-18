@@ -7,15 +7,6 @@ use warnings;
 use Scalar::Util qw[ blessed reftype ];
 use Carp         qw[ confess ];
 
-BEGIN {
-    if ( $^V lt "v5.14" ) {
-        eval "sub LOCALISE_EXCEPTIONS () {0}";
-    }
-    else {
-        eval "sub LOCALISE_EXCEPTIONS () {1}";
-    }
-}
-
 use Promises::Promise;
 
 use constant IN_PROGRESS => 'in progress';
@@ -129,10 +120,13 @@ sub finalize {
 sub _wrap {
     my ($self, $d, $f, $method) = @_;
     return sub {
-        LOCALISE_EXCEPTIONS && local $@;
-        my @results = do { $f->( @_ ) };
-        if ($@) {
-            $d->reject( $@ );
+        local $@;
+        my (@results,$error);
+        eval { @results = do { $f->(@_)}; 1}
+            || do{ $error = $@ || 'Unknown error'};
+
+        if ($error) {
+            $d->reject( $error );
         } elsif ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
             $results[0]->then(
                 sub { $d->resolve( @{ $results[0]->result } ) },

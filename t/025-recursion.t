@@ -67,7 +67,7 @@ sub test_loop {
             ->then( sub {@_} )
 
             # loop or fail
-            ->finalize(
+            ->done(
             $weak_loop,
             sub {
                 $d->reject( 'reject:' . $Max );

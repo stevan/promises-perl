@@ -90,7 +90,7 @@ sub then {
     $d->promise;
 }
 
-sub finalize {
+sub done {
     my ($self, $callback, $error) = @_;
 
     (ref $callback && reftype $callback eq 'CODE')
@@ -233,7 +233,7 @@ the error to the next link in the chain. This allows
 error handling to be consolidated at the point in the
 chain where it makes the most sense.
 
-=item C<finalize( $callback, ?$error )>
+=item C<done( $callback, ?$error )>
 
 This method is used to register two callbacks, the first
 C<$callback> will be called on success and it will be
@@ -242,14 +242,14 @@ call to C<resolve>. The second, C<$error> is optional and
 will be called on error, and will be passed the all the
 values that were sent to the corresponding C<reject>.
 
-Unlike the C<then()> method, C<finalize()> returns an
+Unlike the C<then()> method, C<done()> returns an
 empty list specifically to break the chain and to avoid
 deep recursion.  See the explanation in
 L<Promises::Cookbook::Recursion>.
 
-Also unlike the C<then()> method, C<finalize()> callbacks are
+Also unlike the C<then()> method, C<done()> callbacks are
 not wrapped in an C<eval> block, so calling C<die()> is not
-safe. What will happen if a C<finalize> callback calls
+safe. What will happen if a C<done> callback calls
 C<die()> depends on which event loop you are running: the pure
 Perl L<AnyEvent::Loop> will throw an exception, while
 L<EV> and L<Mojo::IOLoop> will warn and continue running.

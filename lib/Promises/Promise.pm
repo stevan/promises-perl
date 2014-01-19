@@ -16,9 +16,9 @@ sub new {
 }
 
 sub then     { (shift)->{'deferred'}->then(@_) }
-sub finalize { (shift)->{'deferred'}->finalize(@_) }
 sub status   { (shift)->{'deferred'}->status }
 sub result   { (shift)->{'deferred'}->result }
+sub done    { (shift)->{'deferred'}->done(@_) }
 
 sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
 sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled }
@@ -63,9 +63,10 @@ object to proxy.
 
 This calls C<then> on the proxied L<Promises::Deferred> instance.
 
-=item C<finalize( $callback, $error )>
 
-This calls C<finalize> on the proxied L<Promises::Deferred> instance.
+=item C<done( $callback, $error )>
+
+This calls C<done> on the proxied L<Promises::Deferred> instance.
 
 =item C<status>
 

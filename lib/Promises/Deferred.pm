@@ -60,6 +60,16 @@ sub reject {
     $self;
 }
 
+sub _notify_if_fulfilled {
+    my $self = shift;
+    if ( $self->status eq RESOLVED ) {
+        $self->resolve( @{ $self->result } );
+    }
+    elsif ( $self->status eq REJECTED ) {
+        $self->reject( @{ $self->result } );
+    }
+}
+
 sub then {
     my ($self, $callback, $error) = @_;
 
@@ -80,17 +90,20 @@ sub then {
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
     push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject'  );
 
-    if ( $self->status eq RESOLVED ) {
-        $self->resolve( @{ $self->result } );
-    }
-    elsif ( $self->status eq REJECTED ) {
-        $self->reject( @{ $self->result } );
-    }
-
+    $self->_notify_if_fulfilled;
     $d->promise;
 }
 
-sub finalize {
+sub catch {
+    my ( $self, $error ) = @_;
+
+    ( ref $error && reftype $error eq 'CODE' )
+        || confess "You must pass in a error callback";
+
+    $self->then( sub {@_}, $error );
+}
+
+sub done {
     my ($self, $callback, $error) = @_;
 
     (ref $callback && reftype $callback eq 'CODE')
@@ -108,13 +121,38 @@ sub finalize {
     push @{ $self->{'resolved'} } => $callback;
     push @{ $self->{'rejected'} } => $error;
 
-    if ( $self->status eq RESOLVED ) {
-        $self->resolve( @{ $self->result } );
-    }
-    elsif ( $self->status eq REJECTED ) {
-        $self->reject( @{ $self->result } );
-    }
+    $self->_notify_if_fulfilled;
     ();
+}
+
+sub finally {
+    my ( $self, $callback ) = @_;
+
+    ( ref $callback && reftype $callback eq 'CODE' )
+        || confess "You must pass in a callback";
+
+    my $d = ( ref $self )->new;
+
+    my ( @result, $method );
+    my $finish_d = sub { $d->$method(@result) };
+
+    my $f = sub {
+        ( $method, @result ) = @_;
+        local $@;
+        my ($p) = eval { $callback->(@_) };
+        if ( $p && blessed $p && $p->isa('Promises::Promise') ) {
+            return $p->then( $finish_d, $finish_d );
+        }
+        $finish_d->();
+
+    };
+
+    push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
+    push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
+
+    $self->_notify_if_fulfilled;
+    $d->promise;
+
 }
 
 sub _wrap {
@@ -233,7 +271,14 @@ the error to the next link in the chain. This allows
 error handling to be consolidated at the point in the
 chain where it makes the most sense.
 
-=item C<finalize( $callback, ?$error )>
+=item C<catch( $error )>
+
+This method registers a a single error callback.  It is the equivalent
+of calling:
+
+    $promise->then( sub {@_}, $error );
+
+=item C<done( $callback, ?$error )>
 
 This method is used to register two callbacks, the first
 C<$callback> will be called on success and it will be
@@ -242,17 +287,27 @@ call to C<resolve>. The second, C<$error> is optional and
 will be called on error, and will be passed the all the
 values that were sent to the corresponding C<reject>.
 
-Unlike the C<then()> method, C<finalize()> returns an
+Unlike the C<then()> method, C<done()> returns an
 empty list specifically to break the chain and to avoid
 deep recursion.  See the explanation in
 L<Promises::Cookbook::Recursion>.
 
-Also unlike the C<then()> method, C<finalize()> callbacks are
+Also unlike the C<then()> method, C<done()> callbacks are
 not wrapped in an C<eval> block, so calling C<die()> is not
-safe. What will happen if a C<finalize> callback calls
+safe. What will happen if a C<done> callback calls
 C<die()> depends on which event loop you are running: the pure
 Perl L<AnyEvent::Loop> will throw an exception, while
 L<EV> and L<Mojo::IOLoop> will warn and continue running.
+
+=item C<finally( $callback )>
+
+This method is like the C<finally> keyword in a C<try>/C<catch>
+block.  It will execute regardless of whether the promise has
+been resolved or rejected. Typically it is used to clean up
+resources, like closing open files etc. It returns a L<Promises::Promise>
+and so can be chained. The return value is discarded and the
+success or failure of the C<finally> callback will have no
+effect on promises further down the chain.
 
 =item C<resolve( @args )>
 

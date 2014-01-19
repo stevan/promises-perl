@@ -31,7 +31,7 @@ package Promises::Cookbook::Recursion;
         }
         $self->fetch_next_from_db
              ->then( sub { $self->process(@_) })
-             ->finalize(
+             ->done(
                 sub { $self->_fetch_loop($deferred) }
                 sub { $deferred->reject(@_) }
              );
@@ -95,9 +95,9 @@ process completed successfully or not.  Each execution of steps 1 to
 4 is independent. Step 1 does not need to receive the return value
 from step 4.
 
-We can break the chain by using C<finalize()> instead of C<then()>.
+We can break the chain by using C<done()> instead of C<then()>.
 While C<then()> returns a new C<promise> to continue the chain,
-C<finalize()> will execute either the success callback or the
+C<done()> will execute either the success callback or the
 error callback and return an empty list, breaking the chain and
 rolling back the stack.
 
@@ -129,7 +129,7 @@ then we can resolve our promise, indicating success, and exit the loop.
 
         $self->fetch_next_from_db
              ->then( sub { $self->process(@_) })
-             ->finalize(
+             ->done(
                 sub { $self->_fetch_loop($deferred) }
                 sub { $deferred->reject(@_) }
              );
@@ -143,7 +143,7 @@ C<_fetch_loop()> again.
 
 However,this recursion happens asynchronously. What this code actually does
 is to schedule the call to C<_fetch_loop()> in the next tick of the event
-loop. And because we used C<finalize()> instead of C<then()>, we don't
+loop. And because we used C<done()> instead of C<then()>, we don't
 wait around for the return result but instead return immediately,
 exiting the current execution, discarding the return results and
 rolling back the stack.

@@ -37,8 +37,8 @@ is( exception {
             sub { push @out, @_; die "4: OK\n" }
             )
 
-            # Finalize then die
-            ->finalize(
+            # done then die
+            ->done(
             sub { push @out, "4: Not OK" },
             sub { push @out, @_; die "Final\n" }
             );
@@ -47,7 +47,7 @@ is( exception {
         $cv->recv;
     },
     "Final\n",
-    "Exception in PP finalize dies"
+    "Exception in PP done dies"
 );
 
 is $out[0], '1: OK',   "Resolve";

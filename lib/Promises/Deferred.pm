@@ -90,6 +90,15 @@ sub then {
     $d->promise;
 }
 
+sub catch {
+    my ( $self, $error ) = @_;
+
+    ( ref $error && reftype $error eq 'CODE' )
+        || confess "You must pass in a error callback";
+
+    $self->then( sub {@_}, $error );
+}
+
 sub done {
     my ($self, $callback, $error) = @_;
 
@@ -232,6 +241,13 @@ and no C<$error> is specified, we will attempt to bubble
 the error to the next link in the chain. This allows
 error handling to be consolidated at the point in the
 chain where it makes the most sense.
+
+=item C<catch( $error )>
+
+This method registers a a single error callback.  It is the equivalent
+of calling:
+
+    $promise->then( sub {@_}, $error );
 
 =item C<done( $callback, ?$error )>
 

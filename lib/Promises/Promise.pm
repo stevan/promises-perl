@@ -18,6 +18,7 @@ sub new {
 sub then     { (shift)->{'deferred'}->then(@_) }
 sub status   { (shift)->{'deferred'}->status }
 sub result   { (shift)->{'deferred'}->result }
+sub catch   { (shift)->{'deferred'}->catch(@_) }
 sub done    { (shift)->{'deferred'}->done(@_) }
 
 sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
@@ -63,6 +64,9 @@ object to proxy.
 
 This calls C<then> on the proxied L<Promises::Deferred> instance.
 
+=item C<catch( $error )>
+
+This calls C<catch> on the proxied L<Promises::Deferred> instance.
 
 =item C<done( $callback, $error )>
 

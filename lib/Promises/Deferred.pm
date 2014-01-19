@@ -123,7 +123,7 @@ sub _wrap {
         local $@;
         my (@results,$error);
         eval { @results = do { $f->(@_)}; 1}
-            || do{ $error = $@ || 'Unknown error'};
+            || do { $error = $@ || 'Unknown error'};
 
         if ($error) {
             $d->reject( $error );
@@ -218,6 +218,12 @@ It should be noted that this method will always return
 the associated L<Promises::Promise> instance so that you
 can chain things if you like.
 
+The success and error callbacks are wrapped in an C<eval> block,
+so you can safely call C<die()> within a callback to signal
+an error without killing your application. If an exception
+is caught, the next link in the chain will be C<reject>'ed
+and receive the exception in C<@_>.
+
 If this is the last link in the chain, and there is no
 C<$error> callback, the error be silent. You can still
 find it by checking the C<result> method, but no action
@@ -240,6 +246,13 @@ Unlike the C<then()> method, C<finalize()> returns an
 empty list specifically to break the chain and to avoid
 deep recursion.  See the explanation in
 L<Promises::Cookbook::Recursion>.
+
+Also unlike the C<then()> method, C<finalize()> callbacks are
+not wrapped in an C<eval> block, so calling C<die()> is not
+safe. What will happen if a C<finalize> callback calls
+C<die()> depends on which event loop you are running: the pure
+Perl L<AnyEvent::Loop> will throw an exception, while
+L<EV> and L<Mojo::IOLoop> will warn and continue running.
 
 =item C<resolve( @args )>
 

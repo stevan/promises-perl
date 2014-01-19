@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+use NoEV;
 use Test::More;
 
 BEGIN {

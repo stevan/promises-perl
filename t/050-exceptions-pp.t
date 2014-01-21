@@ -10,6 +10,12 @@ use Test::More;
 use Test::Fatal;
 
 BEGIN {
+    if ( $^V lt 5.14 ) {
+        plan skip_all =>
+            'Localizing $@ before Perl 5.14 clobbers the exception';
+        done_testing;
+        exit;
+    }
     use_ok 'Promises::Deferred';
 }
 

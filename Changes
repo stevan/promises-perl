@@ -1,5 +1,18 @@
 Revision history for Perl extension Promises
 
+0.08 Tuesday, Jan. 21, 2014
+    - then() callbacks are now wrapped in
+      an eval block to prevent fatal exceptions
+      and to ensure that rejected promises
+      are propagated correctly
+    - renamed finalize() to done()
+    - added catch() sugar which takes just
+      an error handler
+    - added finally() handler which will
+      always be called, regardles of
+      whether the promise is resolved
+      or rejected, much like try/catch/finally
+
 0.07 Saturday, Jan. 18, 2014
     - fixing a issues with localizing
       exceptions that were found by CPAN

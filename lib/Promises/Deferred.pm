@@ -60,19 +60,13 @@ sub reject {
 }
 
 sub then {
-    my ($self, $callback, $error) = @_;
+    my ( $self, $callback, $error ) = @_;
 
-    (ref $callback && reftype $callback eq 'CODE')
-        || confess "You must pass in a success callback";
+    ( ref $callback && reftype $callback eq 'CODE' )
+        || undef $callback;
 
-    (ref $error && reftype $error eq 'CODE')
-        || confess "You must pass in a error callback"
-            if $error;
-
-    # if we don't get an error
-    # handler, we need to chain
-    # it automatically
-    $error ||= sub { @_ };
+    ( ref $error && reftype $error eq 'CODE' )
+        || undef $error;
 
     my $d = (ref $self)->new;
 
@@ -84,31 +78,21 @@ sub then {
 }
 
 sub catch {
-    my ( $self, $error ) = @_;
-
-    ( ref $error && reftype $error eq 'CODE' )
-        || confess "You must pass in a error callback";
-
-    $self->then( sub {@_}, $error );
+    my $self = shift;
+    $self->then( undef, @_ );
 }
 
 sub done {
-    my ($self, $callback, $error) = @_;
+    my ( $self, $callback, $error ) = @_;
 
-    (ref $callback && reftype $callback eq 'CODE')
-        || confess "You must pass in a success callback";
+    ( ref $callback && reftype $callback eq 'CODE' )
+        || undef $callback;
 
-    (ref $error && reftype $error eq 'CODE')
-        || confess "You must pass in a error callback"
-            if $error;
+    ( ref $error && reftype $error eq 'CODE' )
+        || undef $callback;
 
-    # if we don't get an error
-    # handler, we need to chain
-    # it automatically
-    $error ||= sub { @_ };
-
-    push @{ $self->{'resolved'} } => $callback;
-    push @{ $self->{'rejected'} } => $error;
+    push @{ $self->{'resolved'} } => $callback if $callback;
+    push @{ $self->{'rejected'} } => $error    if $error;
 
     $self->_notify unless $self->is_in_progress;
     ();
@@ -118,7 +102,7 @@ sub finally {
     my ( $self, $callback ) = @_;
 
     ( ref $callback && reftype $callback eq 'CODE' )
-        || confess "You must pass in a callback";
+        or $callback = sub {@_};
 
     my $d = ( ref $self )->new;
 
@@ -145,25 +129,36 @@ sub finally {
 }
 
 sub _wrap {
-    my ($self, $d, $f, $method) = @_;
+    my ( $self, $d, $f, $method ) = @_;
+
+    return sub { $d->$method( @{ $self->result } ) }
+        unless $f;
+
     return sub {
         local $@;
-        my (@results,$error);
-        eval { @results = do { $f->(@_)}; 1}
-            || do { $error = $@ || 'Unknown error'};
+        my ( @results, $error );
+        eval {
+            @results = do { $f->(@_) };
+            1;
+        }
+            || do { $error = $@ || 'Unknown reason' };
 
         if ($error) {
-            $d->reject( $error );
-        } elsif ( (scalar @results) == 1 && blessed $results[0] && $results[0]->isa('Promises::Promise') ) {
+            $d->reject($error);
+        }
+        elsif ( @results == 1
+            and blessed $results[0]
+            and $results[0]->isa('Promises::Promise') )
+        {
             $results[0]->then(
                 sub { $d->resolve( @{ $results[0]->result } ) },
-                sub { $d->reject( @{ $results[0]->result } )  },
+                sub { $d->reject( @{ $results[0]->result } ) },
             );
         }
         else {
-            $d->$method( @results )
+            $d->resolve(@results);
         }
-    }
+    };
 }
 
 sub _notify {

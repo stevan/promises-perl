@@ -12,8 +12,6 @@ use Promises::Promise;
 use constant IN_PROGRESS => 'in progress';
 use constant RESOLVED    => 'resolved';
 use constant REJECTED    => 'rejected';
-use constant RESOLVING   => 'resolving';
-use constant REJECTING   => 'rejecting';
 
 sub new {
     my $class = shift;
@@ -30,21 +28,18 @@ sub result  { (shift)->{'result'}  }
 
 # predicates for all the status possiblities
 sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
-sub is_resolving   { (shift)->{'status'} eq RESOLVING   }
-sub is_rejecting   { (shift)->{'status'} eq REJECTING   }
-sub is_resolved    { (shift)->{'status'} eq RESOLVED    }
-sub is_rejected    { (shift)->{'status'} eq REJECTED    }
+sub is_resolved    { (shift)->{'status'} eq RESOLVED }
+sub is_rejected    { (shift)->{'status'} eq REJECTED }
 
 # the three possible states according to the spec ...
-sub is_unfulfilled { (shift)->is_in_progress            }
-sub is_fulfilled   { $_[0]->is_resolved || $_[0]->is_resolving }
-sub is_failed      { $_[0]->is_rejected || $_[0]->is_rejecting }
+sub is_unfulfilled { (shift)->is_in_progress }
+sub is_fulfilled   { $_[0]->is_resolved }
+sub is_failed      { $_[0]->is_rejected }
 
 sub resolve {
     my $self   = shift;
     my $result = [ @_ ];
     $self->{'result'} = $result;
-    $self->{'status'} = RESOLVING;
     $self->_notify( $self->{'resolved'}, $result );
     $self->{'status'}   = RESOLVED;
     $self;
@@ -54,7 +49,6 @@ sub reject {
     my $self = shift;
     my $result = [ @_ ];
     $self->{'result'} = $result;
-    $self->{'status'} = REJECTING;
     $self->_notify( $self->{'rejected'}, $result );
     $self->{'status'}   = REJECTED;
     $self;

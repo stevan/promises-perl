@@ -37,31 +37,26 @@ sub is_fulfilled   { $_[0]->is_resolved }
 sub is_failed      { $_[0]->is_rejected }
 
 sub resolve {
-    my $self   = shift;
-    my $result = [ @_ ];
-    $self->{'result'} = $result;
-    $self->_notify( $self->{'resolved'}, $result );
-    $self->{'status'}   = RESOLVED;
+    my $self = shift;
+
+    die "Cannot resolve. Already  " . $self->status
+        unless $self->is_in_progress;
+
+    $self->{'result'} = [@_];
+    $self->{'status'} = RESOLVED;
+    $self->_notify;
     $self;
 }
 
 sub reject {
     my $self = shift;
-    my $result = [ @_ ];
-    $self->{'result'} = $result;
-    $self->_notify( $self->{'rejected'}, $result );
-    $self->{'status'}   = REJECTED;
-    $self;
-}
+    die "Cannot reject. Already  " . $self->status
+        unless $self->is_in_progress;
 
-sub _notify_if_fulfilled {
-    my $self = shift;
-    if ( $self->status eq RESOLVED ) {
-        $self->resolve( @{ $self->result } );
-    }
-    elsif ( $self->status eq REJECTED ) {
-        $self->reject( @{ $self->result } );
-    }
+    $self->{'result'} = [@_];
+    $self->{'status'} = REJECTED;
+    $self->_notify;
+    $self;
 }
 
 sub then {
@@ -84,7 +79,7 @@ sub then {
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
     push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject'  );
 
-    $self->_notify_if_fulfilled;
+    $self->_notify unless $self->is_in_progress;
     $d->promise;
 }
 
@@ -115,7 +110,7 @@ sub done {
     push @{ $self->{'resolved'} } => $callback;
     push @{ $self->{'rejected'} } => $error;
 
-    $self->_notify_if_fulfilled;
+    $self->_notify unless $self->is_in_progress;
     ();
 }
 
@@ -144,7 +139,7 @@ sub finally {
     push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
     push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
 
-    $self->_notify_if_fulfilled;
+    $self->_notify unless $self->is_in_progress;
     $d->promise;
 
 }
@@ -172,10 +167,15 @@ sub _wrap {
 }
 
 sub _notify {
-    my ($self, $callbacks, $result) = @_;
-    $_->( @$result ) foreach @$callbacks;
+    my ($self) = @_;
+
+    my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
+
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
+
+    my @result = @{ $self->{result} };
+    $_->(@result) foreach @$cbs;
 
 }
 

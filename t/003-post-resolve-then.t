@@ -16,14 +16,14 @@ BEGIN {
 my $cv0 = AnyEvent->condvar;
 my $cv1 = AnyEvent->condvar;
 
-my $p0 = delay_me( 1 );
+my $p0 = delay_me( 0.1 );
 
 $p0->then(
     sub { $cv0->send( 'ZERO', @_, $p0->status, $p0->result ) },
     sub { $cv0->croak( 'ERROR' ) }
 );
 
-diag "Delaying for 1 second1 ...";
+diag "Delaying for 0.1 second1 ...";
 
 is( $p0->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 0' );
 
@@ -31,9 +31,9 @@ is_deeply(
     [ $cv0->recv ],
     [
         'ZERO',
-        'resolved after 1',
-        Promises::Deferred->RESOLVING,
-        [ 'resolved after 1' ]
+        'resolved after 0.1',
+        Promises::Deferred->RESOLVED,
+        [ 'resolved after 0.1' ]
     ],
     '... got the expected values back'
 );
@@ -49,9 +49,9 @@ is_deeply(
     [ $cv1->recv ],
     [
         'ONE',
-        'resolved after 1',
-        Promises::Deferred->RESOLVING,
-        [ 'resolved after 1' ]
+        'resolved after 0.1',
+        Promises::Deferred->RESOLVED,
+        [ 'resolved after 0.1' ]
     ],
     '... got the expected values back'
 );

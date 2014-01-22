@@ -65,15 +65,23 @@ Promises::Deferred->new->reject("bar")->then(
     sub { fail("This should never be called") },
     sub {
         my $result = shift;
-        is($result, "bar", "... rejectd bar");
-        "foo";
+        is($result, "bar", "... rejected bar");
+        die "foo\n";
     }
 )->then(
     sub { fail("This should never be called") },
     sub {
         my $result = shift;
-        is($result, "foo", "... chained-reject foo");
+        is($result, "foo\n", "... chained-reject foo");
+        "baz"
     }
+)->then(
+    sub {
+        my $result = shift;
+        is($result, "baz", "... handled-reject baz");
+    },
+    sub { fail("This should never be called") },
 );
+
 
 done_testing;

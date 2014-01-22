@@ -24,16 +24,22 @@ is( exception {
             # Resolve then die
             ->then( sub { push @out, @_; die "2: OK\n" } )
 
-            # Reject
+            # Reject and resolve
             ->then(
             sub { push @out, "2: Not OK" },
             sub { push @out, @_; "3: OK" }
             )
 
+            # Resolve then die
+            ->then(
+            sub { push @out, @_; die "4: OK\n" },
+            sub { push @out, @_, "3: Not OK" }
+            )
+
             # Reject then die
             ->then(
-            sub { push @out, "3: Not OK" },
-            sub { push @out, @_; die "4: OK\n" }
+            sub { push @out, "4: Not OK" },
+            sub { push @out, @_; die "5: OK\n" }
             )
 
             # done then die
@@ -42,8 +48,7 @@ is( exception {
             sub { push @out, @_; die "Final\n" }
             );
 
-
-        my $w = AE::timer( 0.3, 0, sub { $cv->send } );
+        my $w = AE::timer( 1, 0, sub { $cv->send } );
         $cv->recv;
     },
     undef,
@@ -52,8 +57,9 @@ is( exception {
 
 is $out[0], '1: OK',   "Resolve";
 is $out[1], "2: OK\n", "Resolve then die";
-is $out[2], '3: OK',   "Reject";
-is $out[3], "4: OK\n", "Reject then die";
+is $out[2], '3: OK',   "Reject then resolve";
+is $out[3], "4: OK\n", "Resolve then die";
+is $out[4], "5: OK\n", "Reject then die";
 
 #===================================
 sub a_promise {

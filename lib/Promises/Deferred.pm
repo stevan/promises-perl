@@ -1,11 +1,12 @@
 package Promises::Deferred;
+
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
 use warnings;
 
 use Scalar::Util qw[ blessed reftype ];
-use Carp         qw[ confess ];
+use Carp qw[ confess ];
 
 use Promises::Promise;
 
@@ -22,9 +23,9 @@ sub new {
     } => $class;
 }
 
-sub promise { Promises::Promise->new( shift ) }
-sub status  { (shift)->{'status'}  }
-sub result  { (shift)->{'result'}  }
+sub promise { Promises::Promise->new(shift) }
+sub status  { (shift)->{'status'} }
+sub result  { (shift)->{'result'} }
 
 # predicates for all the status possiblities
 sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
@@ -68,10 +69,10 @@ sub then {
     ( ref $error && reftype $error eq 'CODE' )
         || undef $error;
 
-    my $d = (ref $self)->new;
+    my $d = ( ref $self )->new;
 
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
-    push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject'  );
+    push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
 
     $self->_notify unless $self->is_in_progress;
     $d->promise;

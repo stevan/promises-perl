@@ -170,9 +170,12 @@ sub _notify {
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 
-    my @result = @{ $self->{result} };
-    $_->(@result) foreach @$cbs;
+    return $self->_notify_backend( $cbs, $self->result );
+}
 
+sub _notify_backend {
+    my ( $self, $cbs, $result ) = @_;
+    $_->(@$result) foreach @$cbs;
 }
 
 1;

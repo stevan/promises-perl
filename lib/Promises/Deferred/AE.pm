@@ -8,16 +8,13 @@ use AE;
 
 use parent 'Promises::Deferred';
 
-sub _notify {
+sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;
     AE::postpone {
         foreach my $cb (@$callbacks) {
             $cb->(@$result);
         }
     };
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
-
 }
 
 1;

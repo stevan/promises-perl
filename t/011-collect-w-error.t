@@ -15,15 +15,15 @@ BEGIN {
 
 my $cv = AnyEvent->condvar;
 
-my $p0 = delay_me_error( 1 );
-my $p1 = delay_me( 2 );
+my $p0 = delay_me_error( 0.1 );
+my $p1 = delay_me( 0.2 );
 
 collect( $p0, $p1 )->then(
     sub { $cv->croak( 'We are expecting an error here, so this shouldn\'t be called' ) },
     sub { $cv->send( 'ERROR' ) }
 );
 
-diag "Delaying for 2 seconds ...";
+diag "Delaying for 0.2 seconds ...";
 
 is( $p0->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 0' );
 is( $p1->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 1' );

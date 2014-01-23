@@ -8,16 +8,13 @@ use AnyEvent;
 
 use parent 'Promises::Deferred';
 
-sub _notify {
+sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;
     AnyEvent::postpone {
         foreach my $cb (@$callbacks) {
             $cb->(@$result);
         }
     };
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
-
 }
 
 1;

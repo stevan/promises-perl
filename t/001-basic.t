@@ -14,14 +14,14 @@ BEGIN {
 }
 
 my $cv = AnyEvent->condvar;
-my $p0 = delay_me( 1 );
+my $p0 = delay_me( 0.1 );
 
 $p0->then(
     sub { $cv->send( 'ZERO', @_, $p0->status, $p0->result ) },
     sub { $cv->croak( 'ERROR' ) }
 );
 
-diag "Delaying for 1 second ...";
+diag "Delaying for 0.1 second ...";
 
 is( $p0->status, Promises::Deferred->IN_PROGRESS, '... got the right status' );
 
@@ -29,9 +29,9 @@ is_deeply(
     [ $cv->recv ],
     [
         'ZERO',
-        'resolved after 1',
-        Promises::Deferred->RESOLVING,
-        [ 'resolved after 1' ]
+        'resolved after 0.1',
+        Promises::Deferred->RESOLVED,
+        [ 'resolved after 0.1' ]
     ],
     '... got the expected values back'
 );

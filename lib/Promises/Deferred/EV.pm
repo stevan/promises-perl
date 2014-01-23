@@ -8,7 +8,7 @@ use EV;
 
 use parent 'Promises::Deferred';
 
-sub _notify {
+sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;
 
     my $w; $w = EV::timer( 0, 0, sub {
@@ -17,10 +17,6 @@ sub _notify {
         }
         undef $w;
     });
-
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
-
 }
 
 1;

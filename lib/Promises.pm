@@ -10,14 +10,7 @@ our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [
-        qw[ deferred collect ],
-        'when' => sub {
-            warn
-                "The 'when' subroutine is deprecated, please use 'collect' instead.";
-            return \&collect;
-            }
-    ]
+    exports    => [ qw[ deferred collect ]]
 };
 
 sub _set_backend {
@@ -62,9 +55,6 @@ sub collect {
 
     $all_done->promise;
 }
-
-# keep back compat ... for now
-*when = \&collect;
 
 1;
 

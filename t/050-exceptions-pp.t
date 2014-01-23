@@ -10,7 +10,7 @@ use Test::More;
 use Test::Fatal;
 
 BEGIN {
-    if ( $^V lt 5.14 ) {
+    if ( $^V lt "v5.14" ) {
         plan skip_all =>
             'Localizing $@ before Perl 5.14 clobbers the exception';
         done_testing;
@@ -31,16 +31,22 @@ is( exception {
             # Resolve then die
             ->then( sub { push @out, @_; die "2: OK\n" } )
 
-            # Reject
+            # Reject and resolve
             ->then(
             sub { push @out, "2: Not OK" },
             sub { push @out, @_; "3: OK" }
             )
 
+            # Resolve then die
+            ->then(
+            sub { push @out, @_; die "4: OK\n" },
+            sub { push @out, @_, "3: Not OK" }
+            )
+
             # Reject then die
             ->then(
-            sub { push @out, "3: Not OK" },
-            sub { push @out, @_; die "4: OK\n" }
+            sub { push @out, "4: Not OK" },
+            sub { push @out, @_; die "5: OK\n" }
             )
 
             # done then die
@@ -58,8 +64,9 @@ is( exception {
 
 is $out[0], '1: OK',   "Resolve";
 is $out[1], "2: OK\n", "Resolve then die";
-is $out[2], '3: OK',   "Reject";
-is $out[3], "4: OK\n", "Reject then die";
+is $out[2], '3: OK',   "Reject then resolve";
+is $out[3], "4: OK\n", "Resolve then die";
+is $out[4], "5: OK\n", "Reject then die";
 
 #===================================
 sub a_promise {

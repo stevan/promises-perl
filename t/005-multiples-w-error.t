@@ -16,8 +16,8 @@ BEGIN {
 my $cv0 = AnyEvent->condvar;
 my $cv1 = AnyEvent->condvar;
 
-my $p0 = delay_me_error( 1 );
-my $p1 = delay_me( 2 );
+my $p0 = delay_me_error( 0.1 );
+my $p1 = delay_me( 0.2 );
 
 $p1->then(
     sub { $cv1->send( 'ONE', @_, $p1->status, $p1->result ) },
@@ -29,7 +29,7 @@ $p0->then(
     sub { $cv0->send( 'ERROR', @_, $p0->status, $p0->result ) }
 );
 
-diag "Delaying for 1 second ...";
+diag "Delaying for 0.1 second ...";
 
 is( $p0->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 0' );
 is( $p1->status, Promises::Deferred->IN_PROGRESS, '... got the right status in promise 1' );
@@ -38,22 +38,22 @@ is_deeply(
     [ $cv0->recv ],
     [
         'ERROR',
-        'rejected after 1',
-        Promises::Deferred->REJECTING,
-        [ 'rejected after 1' ]
+        'rejected after 0.1',
+        Promises::Deferred->REJECTED,
+        [ 'rejected after 0.1' ]
     ],
     '... got the expected values back'
 );
 
-diag "Delaying for 1 more second ...";
+diag "Delaying for 0.1 more second ...";
 
 is_deeply(
     [ $cv1->recv ],
     [
         'ONE',
-        'resolved after 2',
-        Promises::Deferred->RESOLVING,
-        [ 'resolved after 2' ]
+        'resolved after 0.2',
+        Promises::Deferred->RESOLVED,
+        [ 'resolved after 0.2' ]
     ],
     '... got the expected values back'
 );

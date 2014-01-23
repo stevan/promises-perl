@@ -31,14 +31,25 @@ test(
 );
 
 test(
-    "Reject - Finally - Reject",
+    "Reject resolves - Finally - Resolve",
     sub {
         delay_me_error(0.1)                        #
             ->catch( sub   {@vals} )               #
             ->finally( sub { out('Finally') } )    #
-            ->catch( \&got_vals );
+            ->then( \&got_vals );
     },
     [ 'Finally', 'Got vals' ]
+);
+
+test(
+    "Reject dies - Finally - Reject",
+    sub {
+        delay_me_error(0.1)                        #
+            ->catch( sub   { die "Died\n" } )      #
+            ->finally( sub { out('Finally') } )    #
+            ->catch( \&got_error );
+    },
+    [ 'Finally', 'Got error' ]
 );
 
 test(
@@ -65,14 +76,25 @@ test(
 );
 
 test(
-    "Reject - Finally dies - Reject",
+    "Reject resolves - Finally dies - Resolve",
     sub {
         delay_me_error(0.1)                                    #
             ->catch( sub {@vals} )                             #
             ->finally( sub { out('Finally'); die('Foo') } )    #
-            ->catch( \&got_vals );
+            ->then( \&got_vals );
     },
     [ 'Finally', 'Got vals' ]
+);
+
+test(
+    "Reject dies - Finally dies - Reject",
+    sub {
+        delay_me_error(0.1)                                    #
+            ->catch( sub { die "Died\n" } )                    #
+            ->finally( sub { out('Finally'); die('Foo') } )    #
+            ->catch( \&got_error );
+    },
+    [ 'Finally', 'Got error' ]
 );
 
 test(
@@ -104,7 +126,7 @@ test(
 );
 
 test(
-    "Reject - Finally resolves - Reject",
+    "Reject resolves - Finally resolves - Resolve",
     sub {
         delay_me_error(0.1)                                    #
             ->catch( sub {@vals} )                             #
@@ -114,9 +136,25 @@ test(
                 delay_me(0.1)->then( sub { out('Resolved') } );
             }
             )                                                  #
-            ->catch( \&got_vals );
+            ->then( \&got_vals );
     },
     [ 'Finally', 'Resolved', 'Got vals' ]
+);
+
+test(
+    "Reject dies - Finally resolves - Reject",
+    sub {
+        delay_me_error(0.1)                                    #
+            ->catch( sub { die "Died\n" } )                    #
+            ->finally(
+            sub {
+                out('Finally');
+                delay_me(0.1)->then( sub { out('Resolved') } );
+            }
+            )                                                  #
+            ->catch( \&got_error );
+    },
+    [ 'Finally', 'Resolved', 'Got error' ]
 );
 
 test(
@@ -147,13 +185,13 @@ test(
                 delay_me_error(0.1)->catch( sub { out('Rejected') } );
             }
             )                                                  #
-            ->then( \&got_vals,sub{"NO"} );
+            ->then( \&got_vals, sub {"NO"} );
     },
     [ 'Finally', 'Rejected', 'Got vals' ]
 );
 
 test(
-    "Reject - Finally rejects - Reject",
+    "Reject resolves - Finally rejects - Resolve",
     sub {
         delay_me_error(0.1)                                    #
             ->catch( sub {@vals} )                             #
@@ -163,9 +201,25 @@ test(
                 delay_me_error(0.1)->catch( sub { out('Rejected') } );
             }
             )                                                  #
-            ->catch( \&got_vals );
+            ->then( \&got_vals );
     },
     [ 'Finally', 'Rejected', 'Got vals' ]
+);
+
+test(
+    "Reject dies - Finally rejects - Reject",
+    sub {
+        delay_me_error(0.1)                                    #
+            ->catch( sub { die "Died\n" } )                    #
+            ->finally(
+            sub {
+                out('Finally');
+                delay_me_error(0.1)->catch( sub { out('Rejected') } );
+            }
+            )                                                  #
+            ->catch( \&got_error );
+    },
+    [ 'Finally', 'Rejected', 'Got error' ]
 );
 
 test(
@@ -194,10 +248,10 @@ sub test {
     $cb->()->then( sub { $cv->send }, sub { $cv->send } );
     $cv->recv;
 
-#    diag "";
-#    diag "$name";
-#    diag "Expect: @$expect";
-#    diag "Got: @out";
+    #    diag "";
+    #    diag "$name";
+    #    diag "Expect: @$expect";
+    #    diag "Got: @out";
     no warnings 'uninitialized';
     return fail $name unless @out == @$expect;
     for ( 0 .. @out ) {

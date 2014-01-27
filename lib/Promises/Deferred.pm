@@ -125,6 +125,7 @@ sub finally {
     push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
 
     $self->_notify unless $self->is_in_progress;
+            my ($p) = eval { $callback->(@result) };
     $d->promise;
 
 }

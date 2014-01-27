@@ -126,6 +126,7 @@ sub finally {
 
     $self->_notify unless $self->is_in_progress;
             my ($p) = eval { $callback->(@result) };
+            ();
     $d->promise;
 
 }
@@ -150,16 +151,17 @@ sub _wrap {
         }
         elsif ( @results == 1
             and blessed $results[0]
-            and $results[0]->isa('Promises::Promise') )
+            and $results[0]->can('then') )
         {
             $results[0]->then(
-                sub { $d->resolve( @{ $results[0]->result } ) },
-                sub { $d->reject( @{ $results[0]->result } ) },
+                sub { $d->resolve(@_); () },
+                sub { $d->reject(@_);  () },
             );
         }
         else {
             $d->resolve(@results);
         }
+        return;
     };
 }
 

@@ -61,16 +61,10 @@ sub reject {
 }
 
 sub then {
-    my ( $self, $callback, $error ) = @_;
-
-    ( ref $callback && reftype $callback eq 'CODE' )
-        || undef $callback;
-
-    ( ref $error && reftype $error eq 'CODE' )
-        || undef $error;
+    my $self = shift;
+    my ( $callback, $error ) = $self->_callable_or_undef(@_);
 
     my $d = ( ref $self )->new;
-
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
     push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
 
@@ -84,14 +78,8 @@ sub catch {
 }
 
 sub done {
-    my ( $self, $callback, $error ) = @_;
-
-    ( ref $callback && reftype $callback eq 'CODE' )
-        || undef $callback;
-
-    ( ref $error && reftype $error eq 'CODE' )
-        || undef $callback;
-
+    my $self = shift;
+    my ( $callback, $error ) = $self->_callable_or_undef(@_);
     push @{ $self->{'resolved'} } => $callback if $callback;
     push @{ $self->{'rejected'} } => $error    if $error;
 
@@ -100,31 +88,31 @@ sub done {
 }
 
 sub finally {
-    my ( $self, $callback ) = @_;
-
-    ( ref $callback && reftype $callback eq 'CODE' )
-        or $callback = sub {@_};
+    my $self = shift;
+    my ($callback) = $self->_callable_or_undef(@_);
 
     my $d = ( ref $self )->new;
 
-    my ( @result, $method );
-    my $finish_d = sub { $d->$method(@result) };
+    if ($callback) {
+        my ( @result, $method );
+        my $finish_d = sub { $d->$method(@result); () };
 
-    my $f = sub {
-        ( $method, @result ) = @_;
-        local $@;
-        my ($p) = eval { $callback->(@_) };
-        if ( $p && blessed $p && $p->isa('Promises::Promise') ) {
-            return $p->then( $finish_d, $finish_d );
-        }
-        $finish_d->();
+        my $f = sub {
+            ( $method, @result ) = @_;
+            local $@;
+            my ($p) = eval { $callback->(@result) };
+            if ( $p && blessed $p && $p->can('then') ) {
+                return $p->then( $finish_d, $finish_d );
+            }
+            $finish_d->();
+            ();
+        };
 
-    };
+        push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
+        push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
 
-    push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
-    push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
-
-    $self->_notify unless $self->is_in_progress;
+        $self->_notify unless $self->is_in_progress;
+    }
     $d->promise;
 
 }
@@ -149,16 +137,17 @@ sub _wrap {
         }
         elsif ( @results == 1
             and blessed $results[0]
-            and $results[0]->isa('Promises::Promise') )
+            and $results[0]->can('then') )
         {
             $results[0]->then(
-                sub { $d->resolve( @{ $results[0]->result } ) },
-                sub { $d->reject( @{ $results[0]->result } ) },
+                sub { $d->resolve(@_); () },
+                sub { $d->reject(@_);  () },
             );
         }
         else {
             $d->resolve(@results);
         }
+        return;
     };
 }
 
@@ -176,6 +165,16 @@ sub _notify {
 sub _notify_backend {
     my ( $self, $cbs, $result ) = @_;
     $_->(@$result) foreach @$cbs;
+}
+
+sub _callable_or_undef {
+    shift;
+    map {
+        # coderef or object overloaded as coderef
+        ref && reftype $_ eq 'CODE' || blessed $_ && $_->can('()')
+            ? $_
+            : undef
+    } @_;
 }
 
 1;

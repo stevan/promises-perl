@@ -27,7 +27,7 @@ sub promise { Promises::Promise->new(shift) }
 sub status  { (shift)->{'status'} }
 sub result  { (shift)->{'result'} }
 
-# predicates for all the status possiblities
+# predicates for all the status possibilities
 sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
 sub is_resolved    { (shift)->{'status'} eq RESOLVED }
 sub is_rejected    { (shift)->{'status'} eq REJECTED }
@@ -223,7 +223,7 @@ every time it is called.
 
 =item C<status>
 
-This will return the status of the the asynchronous
+This will return the status of the asynchronous
 operation, which will be either 'in progress', 'resolved'
 or 'rejected'. These three strings are also constants
 in this package (C<IN_PROGRESS>, C<RESOLVED> and C<REJECTED>
@@ -323,43 +323,43 @@ C<result> method).
 
 =item C<is_in_progress>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<IN_PROGRESS>.
 
 =item C<is_resolving>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<RESOLVING>.
 
 =item C<is_rejecting>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<REJECTING>.
 
 =item C<is_resolved>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<RESOLVED>.
 
 =item C<is_rejected>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<REJECTED>.
 
 =item C<is_unfulfilled>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is still C<IN_PROGRESS>.
 
 =item C<is_fulfilled>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<RESOLVED> or if the
 status if C<RESOLVING>.
 
 =item C<is_failed>
 
-This is a predicte method against the status value, it
+This is a predicate method against the status value, it
 returns true of the status is C<REJECTED> or if the
 status if C<REJECTING>.
 

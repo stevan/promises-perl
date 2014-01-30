@@ -204,8 +204,8 @@ counter examples with various modules.
 =item L<Promises::Cookbook::ChainingAndPipelining>
 
 One of the key benefits of Promises is that it retains much of
-the flow of a syncronous program, this entry illustrates that
-and compares it with a syncronous (or blocking) version.
+the flow of a synchronous program, this entry illustrates that
+and compares it with a synchronous (or blocking) version.
 
 =item L<Promises::Cookbook::Recursion>
 

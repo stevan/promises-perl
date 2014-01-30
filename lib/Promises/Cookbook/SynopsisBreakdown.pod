@@ -151,9 +151,9 @@ you to concentrate error handling in the places where it makes the most
 sense, and ignore it where it doesn't make sense. As I alluded to above,
 this is very similar to nested C<try/catch> blocks.
 
-And really, thats all there is to it. You can continue to call C<then>
+And really, that's all there is to it. You can continue to call C<then>
 on a promise and it will continue to accumulate callbacks, which will
-be executed in in FIFO order once a call is made to either C<resolve>
+be executed in FIFO order once a call is made to either C<resolve>
 or C<reject> on the associated L<Promises::Deferred> instance. And in
 fact, it will even work after the async operation is complete. Meaning
 that if you call C<then> and the async operation is already completed,

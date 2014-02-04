@@ -105,6 +105,31 @@ asynchronous programming. Promises are meant to be a way to
 better deal with the resulting callback spaghetti that can often
 result in asynchronous programs.
 
+=head1 BACKWARDS COMPATIBILITY WARNING
+
+In version up to and include 0.08 there was a bug in how
+rejected promises were handled.  According to the spec, a
+rejected callback can:
+
+=over
+
+=item *
+
+Rethrow the exception, in which case the next rejected handler
+in the chain would be called, or
+
+=item *
+
+Handle the exception (by not C<die>ing), in which case the next
+B<resolved> handler in the chain would be called.
+
+=back
+
+In previous versions of L<Promises>, this last step was handled incorrectly:
+a rejected handler had no way of handling the exception.  Once a promise
+was rejected, only rejected handlers in the chain would be called.
+
+
 =head2 Relation to the various Perl event loops
 
 This module is actually Event Loop agnostic, the SYNOPSIS above
@@ -239,12 +264,6 @@ or as a success). The eventual result of the returned promise
 object will be an array of all the results (or errors) of each
 of the C<@promises> in the order in which they where passed
 to C<collect> originally.
-
-=item C<when( @promises )>
-
-This is now deprecated, if you import this it will warn you
-accordingly. Please switch all usage of C<when> to use C<collect>
-instead.
 
 =back
 

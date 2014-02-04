@@ -99,14 +99,6 @@ This calls C<is_failed> on the proxied L<Promises::Deferred> instance.
 
 This calls C<is_in_progress> on the proxied L<Promises::Deferred> instance.
 
-=item C<is_resolving>
-
-This calls C<is_resolving> on the proxied L<Promises::Deferred> instance.
-
-=item C<is_rejecting>
-
-This calls C<is_rejecting> on the proxied L<Promises::Deferred> instance.
-
 =item C<is_resolved>
 
 This calls C<is_resolved> on the proxied L<Promises::Deferred> instance.

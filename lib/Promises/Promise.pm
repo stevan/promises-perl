@@ -45,7 +45,7 @@ L<Promises::Deferred> instances.
 Most of the documentation here points back to the
 documentation in the L<Promises::Deferred> module.
 
-Additionally the L<Promises> module contains a long
+Additionally L<Promises::Cookbook::GentleIntro> contains a long
 explanation of how this module, and all it's components
 are meant to work together.
 

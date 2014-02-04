@@ -206,14 +206,12 @@ cookbook entry below.
 
 =head2 Cookbook
 
-I have begun moving the docs over into a Cookbook. While this
-module is incredibly simple, the usage of it is quite complex
-and deserves to be explained in detail. It is my plan to grow
-this section to provide examples of the use of Promises in
-a number of situations and with a number of different event
-loops.
-
 =over 1
+
+=item L<Promises::Cookbook::GentleIntro>
+
+Read this first! This cookbook provides a step-by-step explanation
+of how Promises work and how to use them.
 
 =item L<Promises::Cookbook::SynopsisBreakdown>
 

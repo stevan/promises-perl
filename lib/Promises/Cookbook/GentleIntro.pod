@@ -1,0 +1,623 @@
+=head1 All you need to know about Promises
+
+=encoding utf8
+
+If you have every done any async programming, you will be familiar with
+"callback hell", where one callback calls another, calls another, calls
+another... Promises give us back a top-to-bottom coding style, making async
+code easier to manage and understand. It looks like synchronous code, but
+execution is asynchronous.
+
+The L<Promises> module is event loop agnostic - it can be used with any event
+loop. Backends exist for L<AnyEvent> (and thus all the event loops supported
+by AnyEvent) and L<Mojo::IOLoop>.  But more of this later in
+L</Integration with event loops>.
+
+There are two moving parts:
+
+=over
+
+=item Deferred objects
+
+Deferred objects provide the interface to a specific async request.  They
+execute some asynchronous action and return a promise.
+
+=item Promise objects
+
+A promise is like a placeholder for a future result.  The promise will either
+be I<resolved> in case of success, or I<rejected> in case of failure. Promises
+can be chained together, and each step in the chain is executed sequentially.
+
+=back
+
+The easiest way to understand how Deferred and Promise objects work is by
+example.
+
+=head2 Deferred objects
+
+A deferred object is used to signal the success or failure of some async
+action which can be implemented in the async library of your choice.  For
+instance:
+
+    use Promises qw(deferred);
+    use AnyEvent::HTTP qw(http_get);
+    use JSON qw(decode_json);
+
+    sub fetch_it {
+        my ($uri) = @_;
+        my $deferred = deferred->new;
+        http_get $uri => sub {
+            my ($body, $headers) = @_;
+            $headers->{Status} == 200
+                ? $deferred->resolve( decode_json($body) )
+                : $deferred->reject( $headers->{Reason} )
+        };
+        $deferred->promise;
+    }
+
+
+The above code makes an asynchronous C<http_get> request to the specified
+C<$uri>. The result of the request at the time the subroutine returns is like
+Schrödinger's cat: both dead and alive.  In the future it may succeed or it
+may fail.
+
+This sub creates a L<Promises::Deferred> object using C<deferred>, which is either:
+
+=over
+
+=item * resolved on success, in which case it returns the request C<body>, or
+
+=item * rejected on failure, in which case it returns the reason for failure.
+
+=back
+
+As a final step, the deferred object returns a L<Promises::Promise> object
+which represents the future result.
+
+That's all there is to know about L<Promises::Deferred>.
+
+=head2 Promise objects
+
+Promises are a lot like C<try>/C<catch>/C<finally> blocks except that they can
+be chained together. The most important part of a promise is the C<then()>
+method:
+
+
+    $promise->then(
+        sub { success! },
+        sub { failure }
+    );
+
+The C<then()> method takes two arguments: a success callback and a failure
+callback.  But the important part is that it returns a B<new> promise, which
+is the thing that allows promises to be chained together.
+
+The simple genius of promises (and I can say that because I didn't invent them)
+will not be immediately obvious, but bear with me. Promises are very simple,
+as long as you understand the execution flow:
+
+=head3 Resolving or rejecting a Promise
+
+    use Promises qw(deferred);
+
+    my $deferred = deferred;
+    $deferred->promise->then(
+        sub { say "OK! We received: ".shift(@_)},       # on resolve
+        sub { say "Bah! We failed with: ". shift(@_)}   # on reject
+    );
+
+What this code does depends on what happens to the C<$deferred> object:
+
+    $deferred->resolve('Yay!');
+    # prints: "OK! We received: Yay!"
+
+    $deferred->reject('Pooh!');
+    # prints "Bah! We failed with: Pooh!"
+
+A Deferred object can only be resolved or rejected once.  Once it is resolved
+or rejected, it informs all its promises of the outcome.
+
+=head3 Chaining resolve callbacks
+
+As mentioned earlier, the C<then()> method returns a new promise which will be
+resolved or rejected in turn. Each C<resolve> callback will receive the return
+value of the previous C<resolve> callback:
+
+    deferred
+    ->resolve('red','green')
+    ->promise
+
+    ->then(sub {
+        # @_ contains ('red','green')
+        return ('foo','bar');
+    })
+
+    ->then(sub {
+        # @_ contains ('foo,bar');
+        return 10;
+    })
+
+    ->then( sub {
+        # @_ contains (10)
+    });
+
+All of these example callbacks have just returned a simple value (or values),
+so execution has moved from one callback to the next.
+
+=head3 Chaining reject callbacks
+
+Note that in the above example, in each call to C<then()> we specified only a
+I<resolved> callback, not a I<rejected> callback.  If a promise is resolved or
+rejected, the action gets passed down the chain until it finds a resolved or
+rejected handler.  This means that errors can be handled in the appropriate
+place in the chain:
+
+    my $deferred = deferred;
+
+    $deferred->promise
+    ->then(
+        sub {
+            my $count = shift();
+            say "Count: $count";
+            return $count+1;
+        }
+    )
+    ->then(
+        sub {
+            my $count = shift();
+            say "Count: $count";
+            return $count+1;
+        }
+    )->then(
+        sub {
+            my $count = shift();
+            say "Final count: $count";
+            return $count+1;
+        },
+        sub {
+            my $reason = shift;
+            warn "Failed to count: $reason"
+        }
+    );
+
+If the C<$deferred> object is resolved, it will call each resolved callback in
+turn:
+
+    $deferred->resolve(5);
+    # prints:
+    #   Count: 5
+    #   Count: 6
+    #   Final count: 7
+
+If the C<$deferred> object is rejected, however, it will skip all of the steps
+in the chain until it hits the first rejected callback:
+
+    $deferred->reject('Poor example');
+    # warns:
+    #    "Failed to count: Poor example"
+
+B<Important>: Event loops do not like fatal exceptions! For this reason the
+I<resolved> and I<rejected> callbacks are run in C<eval> blocks. Exceptions
+thrown in either type of callback are passed down the chain to the next
+I<rejected> handler.  If there are no more I<rejected> handlers, then the
+error is silently swallowed.
+
+=head3 Throwing and handling exceptions
+
+While you can signal success or failure by calling C<resolve()> or C<reject()>
+on the C<$deferred> object, you can also signal success or failure in each
+step of the promises chain.
+
+=over
+
+=item *
+
+I<Resolved> callbacks are like C<try> blocks: they can either execute some
+code successfully or throw an exception.
+
+=item *
+
+I<Rejected> callbacks are like C<catch> blocks: they can either handle the
+exception or rethrow it.
+
+=back
+
+    $deferred = deferred;
+
+    $deferred->promise
+    ->then(
+        sub {
+            my $count = shift;
+            if ( $count > 100 ) {
+                die "Count too high!"
+            }
+            return $count
+        }
+    )->then(
+        sub {
+            say "The count is OK. Continuing";
+            return @_
+        },
+        sub {
+            my $error = shift;
+            warn "We have a problem: $error";
+            die $error;
+        }
+    )
+    )->then(
+        undef,  # no resolved handler
+        sub {
+            return 1;
+        }
+    )-> then(
+        sub {
+            my $count = shift;
+            say "Got count: $count";
+        }
+    )
+
+There are a few ways this code can execute. We can resolve the C<$deferred>
+object with a reasonable count:
+
+    $deferred->resolve(5);
+    # prints:
+    #   The count is OK. Continuing
+    #   Got count: 5
+
+    $defer
+
+If we reject the C<$deferred> object, the first I<rejected> handler is called.
+It warns, then rethrows the exception with C<die> which calls the next
+I<rejected> handler.  This handler resolves the exception (that is, it doesn't
+call C<die>) and returns a value which gets passed to the next I<resolved>
+handler:
+
+    $deferred->reject('For example purposes')
+    # warns:
+    #    We have a problem: For example purposes
+    # prints:
+    #    Got count: 1
+
+Finally, if we resolve the C<$deferred> object with a too large count, the
+first I<resolved> handler throws an exception, which calls the next
+I<rejected> handler:
+
+    $deferred->resolve(1000);
+    # warns:
+    #    We have a problem: Count too high!
+    # prints:
+    #    Got count: 1
+
+=head3 C<catch()>
+
+In the above example, we called C<then()> with C<undef> instead of a
+I<resolved> callback. This could be rewritten to look a bit cleaner using the
+C<catch()> method, which takes just a I<rejected> callback.
+
+    # these two lines are equivalent:
+    $promise->then( undef, sub { rejected cb} )
+    $promise->catch( sub { rejected cb } )
+
+=head3 C<finally()>
+
+Any C<try>/C<catch> implementation has a C<finally> block, which can be used
+to clean up resources regardless of whether the code in the C<try> block
+succeeded or failed. Promises offer this functionality too.
+
+The C<finally()> method accepts a single callback which is called regardless
+of whether the previous step was resolved or rejected. The return value
+(or any exception thrown in the callback) are thrown away, and the chain
+continues as if it were not there:
+
+    $deferred = deferred;
+    $deferred->promise
+    ->then(
+        sub {
+            my $count = shift;
+            if ($count > 10) { die "Count too high"}
+            return $count
+        }
+    )->finally(
+        sub { say "Finally got: ".shift(@_) }
+    )->then(
+        sub { say "OK: ". shift(@_)   },
+        sub { say "Bah!: ". shift(@_) }
+    );
+
+If we resolve the C<$deferred> object with a good count, we see:
+
+    $d->resolve(5);
+    # prints:
+    #   Finally got: 5
+    #   OK: 5
+
+With a high count we get:
+
+    $d->resolve(20);
+    # prints:
+    #   Finally got: Count to high
+    #   Bah: 20
+
+=head3 Chaining async callbacks
+
+This is where the magic starts: each I<resolved>/I<rejected> handler can not
+only return a value (or values), it can also B<return a new Promise>. Remember
+that a Promise represents a future value, which means that execution of the
+chain will stop until the new Promise has been either resolved or rejected!
+
+For instance, we could write the following code using the C<fetch_it()> sub
+(see  L</"Deferred objects">) which returns a promise:
+
+    fetch_it('http://domain.com/user/123')
+    ->then(
+        sub {
+            my $user = shift;
+            say "User name: ".$user->{name};
+            say "Fetching total comments";
+            return fetch_id($user->{total_comments_url});
+        }
+    )->then(
+        sub {
+            my $total = shift;
+            say "User has left $total comments"
+        }
+    )
+    ->catch(
+        sub {
+            warn @_
+        }
+    );
+
+This code sends an asynchronous request to get the page for user C<123> and
+returns a promise. Once the promise is resolved, it sends an asynchronous
+request to get the total comments for that user and again returns a promise.
+Once the second promise is resolved, it prints out the total number of
+comments. If either promise were to be rejected, it would skip down the chain
+looking for the first I<rejected> handler and execute that.
+
+This is organised to look like synchronous code.  Each step is executed
+sequentially, it is easy to read and easy to understand, but it works
+asynchronously.  While we are waiting for a response from C<domain.com>
+(while our promise remains unfulfilled), the event loop can happily continue
+running code elsewhere in the application.
+
+In fact, it's not just L<Promises::Promise> objects that can be returned, it
+can be any object that is ``thenable'' (ie it has a C<then()> method). So
+if you want to integrate your Promises code with a library which is using
+L<Future> objects, you should be able to do it.
+
+=head3 Running async requests in parallel
+
+Sometimes order doesn't matter: perhaps we want to retrieve several web pages
+at the same time.  For that we can use the C<collect> helper:
+
+    use Promises qw(collect);
+
+    collect(
+        fetch_it('http://rest.api.example.com/-/product/12345'),
+        fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
+        fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
+    )->then(
+        sub {
+            my ($product, $suggestions, $reviews) = @_;
+            # do something with these values
+        },
+        sub { warn @_ }
+    );
+
+C<collect()> accepts a list of promises and returns a new promise (which we'll
+call C<$p> for clarification purposes.  When all of its promises have been
+resolved, it resolves C<$p> with the values returned by every promise, in the
+same order as they were passed in to C<collect()>.
+
+B<Note:> Each promise can return multiple values, so C<$product>,
+C<$suggestions> and C<$reviews> in the example above will all be array refs.
+
+If any of the passed in promises is rejected, then C<$p> will also be rejected
+with the reason for the failure.  C<$p> can only be rejected once, so we wil
+only find out about the first failure.
+
+=head2 Integration with event loops
+
+In order to run asynchronous code, you need to run some event loop.  That can
+be as simple as using L<AnyEvent/"CONDITION VARIABLES"> to run the event loop
+just until a particular condition is met:
+
+    use AnyEvent;
+
+    my $cv = AnyEvent->condvar;
+    collect(
+        fetch_it('http://rest.api.example.com/-/product/12345'),
+        fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
+        fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
+    )->then(
+        sub {
+            my ($product, $suggestions, $reviews) = @_;
+            $cv->send({
+                product     => $product->[0],
+                suggestions => $suggestions->[0],
+                reviews     => $reviews->[0],
+            })
+        },
+        sub { $cv->croak( 'ERROR' ) }
+    );
+
+    # wait for $cv->send or $cv->croak
+    my $results = $cv->recv;
+
+More usually though, a whole application is intended to be asynchronous, in
+which case the event loop just runs continuously. Normally you would only need
+to use C<$cv>'s or the equivalent at the point where your application uses a
+specific async library, as explained in L</Deferred objects>. The rest of your
+code can deal purely with Promises.
+
+=head3 Event loop specific backends
+
+The I<resolved> and I<rejected> callbacks should be run by the event loop,
+rather than having one callback call the next, which calls the next etc.
+
+In other words, if a promise is resolved, it doesn't call the I<resolved>
+callback directly. Instead it adds it to the event loop's queue, then returns
+immediately. The next time the event loop checks its queue, it'll find the
+callback in the queue and will call it.
+
+By default, L<Promises> is event loop agnostic, which means that it doesn't
+know which event loop to use and so each callback ends up calling the next,
+etc.  If you're writing L<Promises>-based modules for CPAN, then your code
+should also be event loop agnostic, in which case you want to use Promises
+like this:
+
+    use Promises qw(deferred collect);
+
+However, if you are an end user, then you should specify which event loop
+you are using at the start of your application:
+
+    use Promises backed => ['AnyEvent']; # or "EV" or "Mojo"
+
+You only need to specify the backend once - any code in the application
+which uses L<Promises> will automatically use the specified backend.
+
+
+=head2 Recursing safely with with C<done()>
+
+One of the cool things about working with promises is that the return value
+gets passed down the chain as if we the code were synchronous. However that is
+not always what we want.
+
+Imagine that we want to process every line in a file, which could be millions
+of lines. We don't care about the results from each line, all we care about is
+whether the whole file was processed successfully, or whether something
+failed.
+
+In sync code we'd write something like this:
+
+    sub process_file {
+        my $fh = shift;
+        while (my $line = <$fh>) {
+            process_line($line)
+                || die "Failed"
+        }
+    }
+
+Now imagine that C<process_line()> runs asynchronously and returns a promise.
+By the time it returns, it probably hasn't executed anything yet.  We can't go
+ahead and read the next line of the file otherwise we could generate a billion
+promises before any of them has had time to execute.
+
+Instead, we need to wait for C<process_line()> to complete and only then move
+on to reading the next line.  We could do this as follows:
+
+    # WARNING: EXAMPLE OF INCORRECT CODE #
+
+    use Promises qw(deferred);
+
+    sub process_file {
+        my $fh        = shift;
+        my $deferred  = deferred;
+        my $processor = sub {
+            my $line = <$fh>;
+            unless (defined $line) {
+                # we're done
+                return $deferred->resolve;
+            }
+            process_line($line)->then(
+
+                # on success, call $processor again
+                __SUB__,
+
+                # on failure:
+                sub {
+                    return $deferred->reject("Failed")
+                }
+            )
+        }
+
+        # start the loop
+        $processor->();
+
+        return $deferred->promise
+    }
+
+This code has two stack problems. The first is that, every time we process a
+line, we recurse into the current C<__SUB__> B<from> the current sub.  This
+problem is solved by specifying an L</Event loop specific backend> somewhere
+in our application, which we discussed above.
+
+The second problem is that every time we recurse into the current
+C<__SUB__> we're waiting for the return value. Other languages use the
+L<Tail Call optimization|http://en.wikipedia.org/wiki/Tail_call> to
+keep the return stack flat, but we don't have this option.
+
+Instead, we have the C<done()> method which, like C<then()>, accepts a I<resolved> callback
+and a I<rejected> callback. But it differs from C<then()> in two ways:
+
+=over
+
+=item *
+
+It doesn't return a promise, which means that the chain ends with the C<done()> step.
+
+=item *
+
+Callbacks are not run in an C<eval> block, so calling C<die()> will throw a
+fatal exception. (Most event loops, however will catch the exception, warn,
+and continue running.)
+
+=back
+
+The code can be rewritten using C<done()> instead of C<then()> and an event
+loop specific backend, and it will happily process millions of lines without
+memory leaks or stack oveflows:
+
+
+    use Promises backend => ['EV'], 'deferred';
+
+    sub process_file {
+        my $fh        = shift;
+        my $deferred  = deferred;
+        my $processor = sub {
+            my $line = <$fh>;
+            unless (defined $line) {
+                # we're done
+                return $deferred->resolve;
+            }
+            #### USE done() TO END THE CHAIN ####
+            process_line($line)->done(
+
+                # on success, call $processor again
+                __SUB__,
+
+                # on failure:
+                sub {
+                    return $deferred->reject("Failed")
+                }
+            )
+        }
+
+        # start the loop
+        $processor->();
+
+        return $deferred->promise
+    }
+
+=cut
+
+
+__END__
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

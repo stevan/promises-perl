@@ -1,6 +1,10 @@
 Revision history for Perl extension Promises
 
 0.08 Tuesday, Jan. 21, 2014
+    !! Thanks to clinton gormley for all these
+    !! changes. Please take note of the backcompat
+    !! breaking change for finalize().
+
     - then() callbacks are now wrapped in
       an eval block to prevent fatal exceptions
       and to ensure that rejected promises

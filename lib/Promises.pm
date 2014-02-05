@@ -105,6 +105,31 @@ asynchronous programming. Promises are meant to be a way to
 better deal with the resulting callback spaghetti that can often
 result in asynchronous programs.
 
+=head1 BACKWARDS COMPATIBILITY WARNING
+
+In version up to and include 0.08 there was a bug in how
+rejected promises were handled.  According to the spec, a
+rejected callback can:
+
+=over
+
+=item *
+
+Rethrow the exception, in which case the next rejected handler
+in the chain would be called, or
+
+=item *
+
+Handle the exception (by not C<die>ing), in which case the next
+B<resolved> handler in the chain would be called.
+
+=back
+
+In previous versions of L<Promises>, this last step was handled incorrectly:
+a rejected handler had no way of handling the exception.  Once a promise
+was rejected, only rejected handlers in the chain would be called.
+
+
 =head2 Relation to the various Perl event loops
 
 This module is actually Event Loop agnostic, the SYNOPSIS above
@@ -181,14 +206,12 @@ cookbook entry below.
 
 =head2 Cookbook
 
-I have begun moving the docs over into a Cookbook. While this
-module is incredibly simple, the usage of it is quite complex
-and deserves to be explained in detail. It is my plan to grow
-this section to provide examples of the use of Promises in
-a number of situations and with a number of different event
-loops.
-
 =over 1
+
+=item L<Promises::Cookbook::GentleIntro>
+
+Read this first! This cookbook provides a step-by-step explanation
+of how Promises work and how to use them.
 
 =item L<Promises::Cookbook::SynopsisBreakdown>
 
@@ -239,12 +262,6 @@ or as a success). The eventual result of the returned promise
 object will be an array of all the results (or errors) of each
 of the C<@promises> in the order in which they where passed
 to C<collect> originally.
-
-=item C<when( @promises )>
-
-This is now deprecated, if you import this it will warn you
-accordingly. Please switch all usage of C<when> to use C<collect>
-instead.
 
 =back
 

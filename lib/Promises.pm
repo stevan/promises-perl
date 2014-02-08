@@ -100,15 +100,27 @@ __END__
 
 =head1 DESCRIPTION
 
-This module is an implementation of the "Promise" pattern for
+This module is an implementation of the "Promise/A+" pattern for
 asynchronous programming. Promises are meant to be a way to
 better deal with the resulting callback spaghetti that can often
 result in asynchronous programs.
 
+=head1 FUTURE BACKWARDS COMPATIBILITY WARNING
+
+The version of this module is being bumped up to 0.90 as the first
+step towards 1.0 in which the goal is to have full Promises/A+ spec
+compatibility. This is a departure to the previous goal of being
+compatible with the Promises/A spec, this means that behavior may
+change in subtle ways (we will attempt to document this completely
+and clearly whenever possible).
+
+It is B<HIGHLY> recommended that you test things very thoroughly
+before upgrading to this version.
+
 =head1 BACKWARDS COMPATIBILITY WARNING
 
-In version up to and include 0.08 there was a bug in how
-rejected promises were handled.  According to the spec, a
+In version up to and including 0.08 there was a bug in how
+rejected promises were handled. According to the spec, a
 rejected callback can:
 
 =over
@@ -128,7 +140,6 @@ B<resolved> handler in the chain would be called.
 In previous versions of L<Promises>, this last step was handled incorrectly:
 a rejected handler had no way of handling the exception.  Once a promise
 was rejected, only rejected handlers in the chain would be called.
-
 
 =head2 Relation to the various Perl event loops
 
@@ -267,17 +278,19 @@ to C<collect> originally.
 
 =head1 SEE ALSO
 
+=head2 Promises in General
+
 =over 4
 
-=item "You're Missing the Point of Promises" L<http://domenic.me/2012/10/14/youre-missing-the-point-of-promises/>
+=item L<You're Missing the Point of Promises|http://domenic.me/2012/10/14/youre-missing-the-point-of-promises/>
 
-=item L<http://wiki.commonjs.org/wiki/Promises/A>
+=item L<Systems Programming at Twitter|http://monkey.org/~marius/talks/twittersystems/>
 
-=item L<https://github.com/promises-aplus/promises-spec>
+=item L<SIP-14 - Futures and Promises|http://docs.scala-lang.org/sips/pending/futures-promises.html>
 
-=item L<http://docs.scala-lang.org/sips/pending/futures-promises.html>
+=item L<Promises/A+ spec|http://promises-aplus.github.io/promises-spec/>
 
-=item L<http://monkey.org/~marius/talks/twittersystems/>
+=item L<Promises/A spec|http://wiki.commonjs.org/wiki/Promises/A>
 
 =back
 

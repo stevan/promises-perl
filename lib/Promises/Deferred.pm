@@ -80,8 +80,8 @@ sub catch {
 sub done {
     my $self = shift;
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
-    push @{ $self->{'resolved'} } => $callback if $callback;
-    push @{ $self->{'rejected'} } => $error    if $error;
+    push @{ $self->{'resolved'} } => $callback if defined $callback;
+    push @{ $self->{'rejected'} } => $error    if defined $error;
 
     $self->_notify unless $self->is_in_progress;
     ();
@@ -93,7 +93,7 @@ sub finally {
 
     my $d = ( ref $self )->new;
 
-    if ($callback) {
+    if (defined $callback) {
         my ( @result, $method );
         my $finish_d = sub { $d->$method(@result); () };
 
@@ -121,7 +121,7 @@ sub _wrap {
     my ( $self, $d, $f, $method ) = @_;
 
     return sub { $d->$method( @{ $self->result } ) }
-        unless $f;
+        unless defined $f;
 
     return sub {
         local $@;

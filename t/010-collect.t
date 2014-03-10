@@ -10,7 +10,7 @@ use AnyEvent;
 use AsyncUtil qw[ delay_me ];
 
 BEGIN {
-    use_ok('Promises', 'collect');
+    use_ok( 'Promises', 'collect', 'deferred' );
 }
 
 my $cv = AnyEvent->condvar;
@@ -39,5 +39,17 @@ is_deeply(
 
 is( $p0->status, Promises::Deferred->RESOLVED, '... got the right status in promise 0' );
 is( $p1->status, Promises::Deferred->RESOLVED, '... got the right status in promise 1' );
+
+$p0 = collect( deferred->resolve('foo')->promise )->then(
+    sub {
+        is shift()->[0], 'foo', 'Presolved collect';
+    }
+);
+
+$p0 = collect( deferred->reject('foo')->promise )->catch(
+    sub {
+        is shift(), 'foo', 'Prerejected collect';
+    }
+);
 
 done_testing;

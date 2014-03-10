@@ -10,7 +10,7 @@ our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [ qw[ deferred collect ]]
+    exports    => [qw[ deferred collect ]]
 };
 
 sub _set_backend {
@@ -34,7 +34,6 @@ sub collect {
     my $all_done  = $Backend->new;
     my $results   = [];
     my $remaining = scalar @promises;
-
     foreach my $i ( 0 .. $#promises ) {
         my $p = $promises[$i];
         $p->then(
@@ -51,7 +50,8 @@ sub collect {
         );
     }
 
-    $all_done->resolve(@$results) if $remaining == 0;
+    $all_done->resolve(@$results)
+        if $remaining == 0 and $all_done->is_in_progress;
 
     $all_done->promise;
 }

@@ -183,7 +183,7 @@ should use the same event-loop. Module implementers should just use the
 Promises class directly:
 
     package MyClass;
-    use Promises qw(deferred collected);
+    use Promises qw(deferred collect);
 
 End users should specify which Deferred backend they wish to use. For
 instance if you are using AnyEvent, you can do:

@@ -1,5 +1,13 @@
 Revision history for Perl extension Promises
 
+0.91 Wednesday, March 19th, 2014
+  - fixed issue with re-resolved promises
+    not working correctly
+      - thanks to Gregory Oschwald for the bug
+      - thanks to Clinton Gormley for the fix
+      - github issue #28 & #29
+  - thanks to Sean Zellmer for some typo fix
+
 0.90 Saturday, Feb. 8th, 2014
     !! ----------------------------------- !!
     !!   BACKWARDS COMPATIBILITY WARNING   !!

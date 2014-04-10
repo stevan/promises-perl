@@ -1,5 +1,9 @@
 Revision history for Perl extension Promises
 
+0.92 Wednesday, April 9th, 2014
+  - just a quick update to make Mojo::IOLoop
+    recommended instead of required.
+
 0.91 Wednesday, March 19th, 2014
   - fixed issue with re-resolved promises
     not working correctly

@@ -9,6 +9,9 @@ use Test::More;
 use Test::Fatal;
 
 BEGIN {
+    if (!eval { require Mojo::IOLoop; Mojo::IOLoop->import; 1 }) {
+        plan skip_all => "Mojo::IOLoop is required for this test";
+    }
     use_ok 'Promises::Deferred::Mojo';
 }
 

@@ -1,5 +1,11 @@
 Revision history for Perl extension Promises
 
+
+0.93 Wednesday, April 9th, 2014
+  - fix the AutoPrereqs issue so that EV,
+    AE, AnyEvent and Mojo::IOLoop are not
+    required anymore, sorry about that.
+
 0.92 Wednesday, April 9th, 2014
   - just a quick update to make Mojo::IOLoop
     recommended instead of required.

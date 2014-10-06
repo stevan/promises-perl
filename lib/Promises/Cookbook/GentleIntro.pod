@@ -478,7 +478,7 @@ like this:
 However, if you are an end user, then you should specify which event loop
 you are using at the start of your application:
 
-    use Promises backed => ['AnyEvent']; # or "EV" or "Mojo"
+    use Promises backend => ['AnyEvent']; # or "EV" or "Mojo"
 
 You only need to specify the backend once - any code in the application
 which uses L<Promises> will automatically use the specified backend.

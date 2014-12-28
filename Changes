@@ -1,5 +1,10 @@
 Revision history for Perl extension Promises
 
+0.94 Monday, December 29, 2014
+  - fixing the other side of the AutoPrereqs 
+    issue, which is actually making sure that
+    test runs succeed if you do not have those
+    pre-reqs, again, sorry about this.
 
 0.93 Wednesday, April 9th, 2014
   - fix the AutoPrereqs issue so that EV,

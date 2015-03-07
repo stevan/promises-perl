@@ -209,7 +209,7 @@ direction taken.
 
 =head1 CALLBACKS
 
-Wherever a callabck is mentioned below, it may take the form
+Wherever a callback is mentioned below, it may take the form
 of a coderef:
 
     sub {...}

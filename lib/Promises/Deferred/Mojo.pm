@@ -10,7 +10,7 @@ use parent 'Promises::Deferred';
 
 sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;
-    Mojo::IOLoop->timer(0,sub {
+    Mojo::IOLoop->next_tick(sub {
         foreach my $cb (@$callbacks) {
             $cb->(@$result);
         }
@@ -51,4 +51,3 @@ B<Note:> If you are using Mojolicious with the L<EV> event loop, then you
 should use the L<Promises::Deferred::EV> backend instead.
 
 =back
-

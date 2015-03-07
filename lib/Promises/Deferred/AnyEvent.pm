@@ -48,4 +48,3 @@ the application:
     use MyClass;
 
 =back
-

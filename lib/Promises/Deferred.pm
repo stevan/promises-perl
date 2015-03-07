@@ -7,6 +7,7 @@ use warnings;
 
 use Scalar::Util qw[ blessed reftype ];
 use Carp qw[ confess ];
+use Hash::Util::FieldHash 'fieldhash';
 
 use Promises::Promise;
 
@@ -14,13 +15,11 @@ use constant IN_PROGRESS => 'in progress';
 use constant RESOLVED    => 'resolved';
 use constant REJECTED    => 'rejected';
 
+fieldhash my %CALLBACKS;
+
 sub new {
     my $class = shift;
-    bless {
-        resolved => [],
-        rejected => [],
-        status   => IN_PROGRESS
-    } => $class;
+    bless {status => IN_PROGRESS} => $class;
 }
 
 sub promise { Promises::Promise->new(shift) }
@@ -65,8 +64,9 @@ sub then {
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
 
     my $d = ( ref $self )->new;
-    push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
-    push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
+    my $cbs = $self->_callbacks;
+    push @{ $cbs->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
+    push @{ $cbs->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
 
     $self->_notify unless $self->is_in_progress;
     $d->promise;
@@ -80,8 +80,9 @@ sub catch {
 sub done {
     my $self = shift;
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
-    push @{ $self->{'resolved'} } => $callback if defined $callback;
-    push @{ $self->{'rejected'} } => $error    if defined $error;
+    my $cbs = $self->_callbacks;
+    push @{ $cbs->{'resolved'} } => $callback if defined $callback;
+    push @{ $cbs->{'rejected'} } => $error    if defined $error;
 
     $self->_notify unless $self->is_in_progress;
     ();
@@ -108,8 +109,9 @@ sub finally {
             ();
         };
 
-        push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
-        push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
+        my $cbs = $self->_callbacks;
+        push @{ $cbs->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
+        push @{ $cbs->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
 
         $self->_notify unless $self->is_in_progress;
     }
@@ -154,10 +156,11 @@ sub _wrap {
 sub _notify {
     my ($self) = @_;
 
-    my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
+    my $cbs = $self->is_resolved
+      ? $CALLBACKS{$self}{'resolved'}
+      : $CALLBACKS{$self}{'rejected'};
 
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
+    $CALLBACKS{$self} = {};
 
     return $self->_notify_backend( $cbs, $self->result );
 }
@@ -176,6 +179,8 @@ sub _callable_or_undef {
             : undef
     } @_;
 }
+
+sub _callbacks { $CALLBACKS{shift()} //= {} }
 
 1;
 
@@ -359,6 +364,3 @@ returns true of the status is C<REJECTED> or if the
 status if C<REJECTING>.
 
 =back
-
-
-

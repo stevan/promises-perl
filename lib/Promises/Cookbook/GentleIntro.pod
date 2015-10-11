@@ -51,7 +51,7 @@ instance:
 
     sub fetch_it {
         my ($uri) = @_;
-        my $deferred = deferred->new;
+        my $deferred = deferred;
         http_get $uri => sub {
             my ($body, $headers) = @_;
             $headers->{Status} == 200

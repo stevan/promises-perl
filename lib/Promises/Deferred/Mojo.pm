@@ -50,5 +50,5 @@ the application:
 B<Note:> If you are using Mojolicious with the L<EV> event loop, then you
 should use the L<Promises::Deferred::EV> backend instead.
 
-=back
+=cut
 

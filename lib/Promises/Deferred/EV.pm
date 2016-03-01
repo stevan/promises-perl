@@ -49,5 +49,5 @@ the application:
     use Promises -backend => ['EV'];
     use MyClass;
 
-=back
+=cut
 

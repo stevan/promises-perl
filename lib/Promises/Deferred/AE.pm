@@ -47,5 +47,5 @@ the application:
     use Promises -backend => ['AE'];
     use MyClass;
 
-=back
+=cut
 

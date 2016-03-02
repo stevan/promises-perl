@@ -47,5 +47,5 @@ the application:
     use Promises -backend => ['AnyEvent'];
     use MyClass;
 
-=back
+=cut
 

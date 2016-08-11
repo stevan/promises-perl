@@ -5,6 +5,8 @@ use warnings;
 
 use lib 't/lib';
 
+use Test::Requires 'AnyEvent';
+
 use Test::More;
 use AnyEvent;
 use AsyncUtil qw[ delay_me ];

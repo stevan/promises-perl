@@ -6,6 +6,8 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
+use Test::Requires 'AnyEvent';
+
 use Scalar::Util qw(weaken);
 use AnyEvent;
 

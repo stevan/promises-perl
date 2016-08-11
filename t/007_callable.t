@@ -5,6 +5,8 @@ use warnings;
 
 use lib 't/lib';
 use Promises qw(deferred);
+use Test::Requires 'AE';
+
 use AE;
 use Test::More;
 

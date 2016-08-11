@@ -3,10 +3,12 @@
 use strict;
 use warnings;
 
+use Test::More;
+use Test::Requires 'AnyEvent';
+
 use lib 't/lib';
 use NoEV;
 use AnyEvent;
-use Test::More;
 use Test::Fatal;
 
 BEGIN {

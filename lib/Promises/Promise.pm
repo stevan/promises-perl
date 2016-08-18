@@ -46,7 +46,7 @@ Most of the documentation here points back to the
 documentation in the L<Promises::Deferred> module.
 
 Additionally L<Promises::Cookbook::GentleIntro> contains a long
-explanation of how this module, and all it's components
+explanation of how this module, and all its components
 are meant to work together.
 
 =head1 METHODS

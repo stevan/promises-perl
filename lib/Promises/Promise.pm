@@ -5,30 +5,22 @@ package Promises::Promise;
 use strict;
 use warnings;
 
-use Scalar::Util qw[ blessed ];
-use Carp qw[ confess ];
+use Moo;
 
-sub new {
-    my ( $class, $deferred ) = @_;
-    ( blessed $deferred && $deferred->isa('Promises::Deferred') )
-        || confess "You must supply an instance of Promises::Deferred";
-    bless { 'deferred' => $deferred } => $class;
+has deferred => (
+    is       => 'ro',
+    handles  => 'Promises::Role::Promise',
+    required => 1,
+);
+
+sub BUILDARGS {
+    my $class = shift;
+
+    unshift @_, 'deferred' if @_ == 1 and eval { $_[0]->isa('Promises::Deferred') };
+
+    # one arg => it's the hashref already
+    return @_ == 1 ? $_[0] : { @_ };
 }
-
-sub then    { (shift)->{'deferred'}->then(@_) }
-sub catch   { (shift)->{'deferred'}->catch(@_) }
-sub done    { (shift)->{'deferred'}->done(@_) }
-sub finally { (shift)->{'deferred'}->finally(@_) }
-sub status  { (shift)->{'deferred'}->status }
-sub result  { (shift)->{'deferred'}->result }
-
-sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
-sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled }
-sub is_failed      { (shift)->{'deferred'}->is_failed }
-
-sub is_in_progress { (shift)->{'deferred'}->is_in_progress }
-sub is_resolved    { (shift)->{'deferred'}->is_resolved }
-sub is_rejected    { (shift)->{'deferred'}->is_rejected }
 
 1;
 

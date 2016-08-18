@@ -10,27 +10,47 @@ use Carp qw[ confess ];
 
 use Promises::Promise;
 
+use Moo;
+
 use constant IN_PROGRESS => 'in progress';
 use constant RESOLVED    => 'resolved';
 use constant REJECTED    => 'rejected';
 
-sub new {
-    my $class = shift;
-    bless {
-        resolved => [],
-        rejected => [],
-        status   => IN_PROGRESS
-    } => $class;
+has $_ => (
+    is      => 'rw',
+    default => sub { [] },
+    lazy    => 1,
+    clearer => 1,
+) for qw/ resolved rejected /;
+
+# could use MooX::HandlesVia for that, but it's
+# probably overkill
+
+sub push_resolved {
+    my $self = shift;
+    $self->resolved( [ @{$self->resolved}, @_ ] );
 }
 
+sub push_rejected {
+    my $self = shift;
+    $self->rejected( [ @{$self->rejected}, @_ ] );
+}
+
+has status => (
+    is => 'rw',
+    default => sub{ IN_PROGRESS },
+);
+
+has result => ( is => 'rw' );
+
+with 'Promises::Role::Promise';
+
 sub promise { Promises::Promise->new(shift) }
-sub status  { (shift)->{'status'} }
-sub result  { (shift)->{'result'} }
 
 # predicates for all the status possibilities
-sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
-sub is_resolved    { (shift)->{'status'} eq RESOLVED }
-sub is_rejected    { (shift)->{'status'} eq REJECTED }
+sub is_in_progress { (shift)->status eq IN_PROGRESS }
+sub is_resolved    { (shift)->status eq RESOLVED }
+sub is_rejected    { (shift)->status eq REJECTED }
 
 # the three possible states according to the spec ...
 sub is_unfulfilled { (shift)->is_in_progress }
@@ -43,8 +63,8 @@ sub resolve {
     die "Cannot resolve. Already  " . $self->status
         unless $self->is_in_progress;
 
-    $self->{'result'} = [@_];
-    $self->{'status'} = RESOLVED;
+    $self->result([@_]);
+    $self->status(RESOLVED);
     $self->_notify;
     $self;
 }
@@ -54,8 +74,8 @@ sub reject {
     die "Cannot reject. Already  " . $self->status
         unless $self->is_in_progress;
 
-    $self->{'result'} = [@_];
-    $self->{'status'} = REJECTED;
+    $self->result([@_]);
+    $self->status(REJECTED);
     $self->_notify;
     $self;
 }
@@ -65,8 +85,8 @@ sub then {
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
 
     my $d = ( ref $self )->new;
-    push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
-    push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
+    $self->push_resolved( $self->_wrap( $d, $callback, 'resolve' ) );
+    $self->push_rejected( $self->_wrap( $d, $error,    'reject'  ) );
 
     $self->_notify unless $self->is_in_progress;
     $d->promise;
@@ -80,8 +100,8 @@ sub catch {
 sub done {
     my $self = shift;
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
-    push @{ $self->{'resolved'} } => $callback if defined $callback;
-    push @{ $self->{'rejected'} } => $error    if defined $error;
+    $self->push_resolved( $callback ) if defined $callback;
+    $self->push_rejected( $error    ) if defined $error;
 
     $self->_notify unless $self->is_in_progress;
     ();
@@ -108,8 +128,8 @@ sub finally {
             ();
         };
 
-        push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
-        push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
+        $self->push_resolved( sub { $f->( 'resolve', @_ ) } );
+        $self->push_rejected( sub { $f->( 'reject',  @_ ) } );
 
         $self->_notify unless $self->is_in_progress;
     }
@@ -154,10 +174,9 @@ sub _wrap {
 sub _notify {
     my ($self) = @_;
 
-    my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
+    my $cbs = $self->is_resolved ? $self->resolved : $self->rejected;
 
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
+    $self->_clear_callbacks;
 
     return $self->_notify_backend( $cbs, $self->result );
 }
@@ -175,6 +194,11 @@ sub _callable_or_undef {
             ? $_
             : undef
     } @_;
+}
+
+sub _clear_callbacks {
+    my $self = shift;
+    $self->$_ for map { "clear_$_" } qw/ resolved rejected /;
 }
 
 1;

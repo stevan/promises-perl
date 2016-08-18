@@ -6,7 +6,9 @@ use warnings;
 
 use Mojo::IOLoop;
 
-use parent 'Promises::Deferred';
+use Moo;
+
+extends 'Promises::Deferred';
 
 sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;

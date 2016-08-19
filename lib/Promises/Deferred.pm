@@ -73,6 +73,12 @@ sub then {
     $d->promise;
 }
 
+sub chain { 
+    my $self = shift;
+    $self = $self->then($_) for @_;
+    return $self;
+}
+
 sub catch {
     my $self = shift;
     $self->then( undef, @_ );
@@ -276,6 +282,24 @@ C<result> method, but no action will be taken. If this is not the last link in
 the chain, and no C<$error> is specified, we will attempt to bubble the error
 to the next link in the chain. This allows error handling to be consolidated
 at the point in the chain where it makes the most sense.
+
+=item C<chain( @callbacks )>
+
+Utility method that takes a list of callbacks and turn them into a sequence
+of C<then>s. 
+
+    $promise->then( sub { ...code A... } )
+            ->then( sub { ...code B... } )
+            ->then( sub { ...code C... } );
+
+    # equivalent to
+
+    $promise->chain( 
+        sub { ...code A... } ),
+        sub { ...code B... } ),
+        sub { ...code C... } ),
+    );
+
 
 =item C<catch( $error )>
 

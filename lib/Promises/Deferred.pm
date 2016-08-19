@@ -31,6 +31,7 @@ sub result  { (shift)->{'result'} }
 sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
 sub is_resolved    { (shift)->{'status'} eq RESOLVED }
 sub is_rejected    { (shift)->{'status'} eq REJECTED }
+sub is_done        { ! $_[0]->is_in_progress }
 
 # the three possible states according to the spec ...
 sub is_unfulfilled { (shift)->is_in_progress }
@@ -340,6 +341,11 @@ returns true if the status is C<RESOLVED>.
 
 This is a predicate method against the status value, it
 returns true if the status is C<REJECTED>.
+
+=item C<is_done>
+
+This is a predicate method against the status value, it
+returns true if the status is either C<RESOLVED> or C<REJECTED>.
 
 =item C<is_unfulfilled>
 

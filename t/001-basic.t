@@ -40,4 +40,12 @@ is_deeply(
 
 is( $p0->status, Promises::Deferred->RESOLVED, '... got the right status' );
 
+subtest 'checking predicates' => sub {
+    # should be true
+    ok $p0->$_, $_ for qw/ is_resolved is_fulfilled is_done /;
+
+    # should be false
+    ok !$p0->$_, $_ for qw/ is_rejected is_unfulfilled is_in_progress /;
+};
+
 done_testing;

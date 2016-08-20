@@ -16,6 +16,7 @@ sub new {
 }
 
 sub then    { (shift)->{'deferred'}->then(@_) }
+sub chain   { (shift)->{'deferred'}->chain(@_) }
 sub catch   { (shift)->{'deferred'}->catch(@_) }
 sub done    { (shift)->{'deferred'}->done(@_) }
 sub finally { (shift)->{'deferred'}->finally(@_) }
@@ -63,6 +64,10 @@ object to proxy.
 =item C<then( $callback, $error )>
 
 This calls C<then> on the proxied L<Promises::Deferred> instance.
+
+=item C<chain( @thens )>
+
+This calls C<chain> on the proxied L<Promises::Deferred> instance.
 
 =item C<catch( $error )>
 

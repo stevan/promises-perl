@@ -10,7 +10,7 @@ our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [qw[ deferred collect ]]
+    exports    => [qw[ deferred collect resolved rejected ]]
 };
 
 sub _set_backend {
@@ -27,6 +27,9 @@ sub _set_backend {
 }
 
 sub deferred { $Backend->new; }
+
+sub resolved { deferred->resolve(@_) }
+sub rejected { deferred->reject(@_)  }
 
 sub collect {
     my @promises = @_;
@@ -262,6 +265,22 @@ using Promises with L<Mojo::UserAgent>.
 
 This just creates an instance of the L<Promises::Deferred> class
 it is purely for convenience.
+
+=item C<resolved( @values )>
+
+Creates an instance of L<Promises::Deferred> resolved with 
+the provided C<@values>. Purely a shortcut for
+
+    my $promise = deferred;
+    $promise->resolve(@values);
+
+=item C<rejected( @values )>
+
+Creates an instance of L<Promises::Deferred> rejected with 
+the provided C<@values>. Purely a shortcut for
+
+    my $promise = deferred;
+    $promise->reject(@values);
 
 =item C<collect( @promises )>
 

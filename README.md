@@ -7,7 +7,7 @@ result in asynchronous programs.
 
 ## SYNOPSIS
 
-```
+```perl
 use AnyEvent::HTTP;
 use JSON::XS qw[ decode_json ];
 use Promises qw[ collect deferred ];

@@ -26,7 +26,15 @@ sub _set_backend {
 
 }
 
-sub deferred { $Backend->new; }
+sub deferred(;&) { 
+    my $promise = $Backend->new;
+
+    if ( my $code = shift ) {
+        $code->($promise);
+    }
+
+    return $promise;
+}
 
 sub resolved { deferred->resolve(@_) }
 sub rejected { deferred->reject(@_)  }
@@ -265,6 +273,24 @@ using Promises with L<Mojo::UserAgent>.
 
 This just creates an instance of the L<Promises::Deferred> class
 it is purely for convenience.
+
+Can take a coderef, which is passed the promise as its parameter.
+
+    my $promise = deferred;
+
+    ... do stuff ...
+
+    $promise->resolve( @something );
+
+    # equivalent to
+
+    my $promise = deferred sub {
+        my $promise = shift;
+
+        ... do stuff ...
+
+        $promise->resolve( @something );
+    };
 
 =item C<resolved( @values )>
 

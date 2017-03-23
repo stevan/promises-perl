@@ -1,5 +1,10 @@
 Revision history for Perl extension Promises
 
+{NEXT}
+
+  [ENHANCEMENTS]
+  - add new function 'collect_hash'. (GH#52, yanick)
+
 0.95_TRIAL 2017-08-19
 
   [ENHANCEMENTS]
@@ -25,6 +30,7 @@ Revision history for Perl extension Promises
   - skip tests if AnyEvent is not installed (GH#42, yanick)
   - add a META.json (GH#40, hatorikibble)
   - README.md improvement. (GH#51, Andy Kogut + yanick)
+
 
 0.94 Monday, December 29, 2014
   - fixing the other side of the AutoPrereqs 

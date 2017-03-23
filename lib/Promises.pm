@@ -10,7 +10,7 @@ our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [qw[ deferred collect resolved rejected ]]
+    exports    => [qw[ deferred collect resolved rejected collect_props ]]
 };
 
 sub _set_backend {
@@ -78,6 +78,36 @@ sub collect {
         if $remaining == 0 and $all_done->is_in_progress;
 
     $all_done->promise;
+}
+
+sub collect_props {
+    my %promises = @_;
+
+    my $all_done  = deferred();
+
+    my $results   = {};
+    my $remaining = scalar keys %promises;
+
+    my $are_we_there_yet = sub {
+        return if --$remaining;
+
+        return if $all_done->is_rejected;
+
+        $all_done->resolve($results);
+    };
+
+    while( my( $key, $promise ) = each %promises ) {
+        unless( ref $promise eq 'Promises::Promise' or ref $promise eq 'Promises::Deferred' ) {
+            my $p = deferred();
+            $p->resolve($promise);
+            $promise = $p;
+        }
+
+        $promise->then(sub{ $results->{$key} = shift })
+            ->then( $are_we_there_yet, sub { $all_done->reject(@_) } );
+    }
+
+    return $all_done->promise;
 }
 
 1;
@@ -349,6 +379,50 @@ in an arrayref and passed through.
     )->then(sub{
         print join ' ', map { @$_ } @_; # => "1 not a promise 2"
     })
+
+=item C<collect_props( key1 => $promise1, key2 => $promise2, ... )>
+
+Like C<collect()>, but will yield a hashref composed of the given keys 
+and promises's results. Values can also be regular variables, in which
+case they'll be simply passed through.
+
+For example,
+
+  my $id = 12345;
+
+  collect(
+      fetch_it("http://rest.api.example.com/-/product/$id"),
+      fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+              id          => $id
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+could be rewritten as
+
+  my $id = 12345;
+
+  collect(
+      id          => $id,
+      product     => fetch_it("http://rest.api.example.com/-/product/$id"),
+      suggestions => fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      reviews     => fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my $results = shift;
+          $cv->send($results);
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
 
 =back
 

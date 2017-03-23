@@ -13,6 +13,7 @@ Revision history for Perl extension Promises
   - Mention other modules implementing promises. (GH#64)
 
   [ ENHANCEMENTS ]
+  - add Promises::Sub. (GH#54, yanick)
 
   [ NEW FEATURES ]
 
@@ -75,6 +76,7 @@ Revision history for Perl extension Promises
   - skip tests if AnyEvent is not installed (GH#42, yanick)
   - add a META.json (GH#40, hatorikibble)
   - README.md improvement. (GH#51, Andy Kogut + yanick)
+
 
 0.94 Monday, December 29, 2014
   - fixing the other side of the AutoPrereqs  issue, which is actually

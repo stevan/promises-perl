@@ -1,7 +1,9 @@
 requires "Carp" => "0";
 requires "Data::Dumper" => "0";
+requires "Exporter" => "0";
 requires "Module::Runtime" => "0";
 requires "Scalar::Util" => "0";
+requires "Sub::Attribute" => "0";
 requires "Sub::Exporter" => "0";
 requires "constant" => "0";
 requires "parent" => "0";
@@ -13,6 +15,7 @@ on 'test' => sub {
   requires "File::Spec" => "0";
   requires "IO::Handle" => "0";
   requires "IPC::Open3" => "0";
+  requires "Test::Exception" => "0";
   requires "Test::Fatal" => "0";
   requires "Test::More" => "0.89";
   requires "Test::Pod" => "0";

@@ -11,11 +11,15 @@ our $Backend = 'Promises::Deferred';
 our $WARN_ON_UNHANDLED_REJECT = 0;
 
 use Sub::Exporter -setup => {
+
     collectors => [ 
         'backend' => \'_set_backend',
         'warn_on_unhandled_reject' => \'_set_warn_on_unhandled_reject',
     ],
-    exports    => [qw[ deferred collect resolved rejected ]]
+    exports    => [qw[ 
+        deferred resolved rejected 
+        collect collect_hash 
+    ]]
 };
 
 sub _set_warn_on_unhandled_reject {
@@ -77,6 +81,17 @@ sub deferred(;&) {
 sub resolved { deferred->resolve(@_) }
 sub rejected { deferred->reject(@_)  }
 
+sub collect_hash { 
+    collect(@_)->then( sub { 
+    map { 
+        my @values = @$_;
+        die "'collect_hash' promise returned more than one value: [@{[ join ', ', @values ]} ]\n"
+            if @values > 1;
+
+        @values == 1 ? $values[0] : undef;
+    } @_ }) 
+}
+
 sub collect {
     my @promises = @_;
 
@@ -86,6 +101,8 @@ sub collect {
     foreach my $i ( 0 .. $#promises ) {
         my $p = $promises[$i];
 
+        # if it's not a Promise, it's something 
+        # that is already resolved
         unless ( 
             grep { ref $p eq $_ }
                  qw/ Promises::Promise Promises::Deferred / 
@@ -114,6 +131,7 @@ sub collect {
 
     $all_done->promise;
 }
+
 
 1;
 
@@ -360,14 +378,16 @@ the provided C<@values>. Purely a shortcut for
 
 =item C<collect( @promises )>
 
-The only export for this module is the C<collect> function, which
-accepts an array of L<Promises::Promise> objects and then
+Accepts a list of L<Promises::Promise> objects and then
 returns a L<Promises::Promise> object which will be called
 once all the C<@promises> have completed (either as an error
-or as a success). The eventual result of the returned promise
-object will be an array of all the results (or errors) of each
+or as a success). 
+
+The eventual result of the returned promise
+object will be an array of all the results of each
 of the C<@promises> in the order in which they where passed
-to C<collect> originally.
+to C<collect> originally, wrapped in arrayrefs, or the first error if
+at least one of the promises fail.
 
 If C<collect> is passed a value that is not a promise, it'll be wrapped
 in an arrayref and passed through. 
@@ -375,15 +395,74 @@ in an arrayref and passed through.
     my $p1 = deferred;
     my $p2 = deferred;
     $p1->resolve(1);
-    $p2->resolve(2);
+    $p2->resolve(2,3);
 
     collect(
         $p1,
         'not a promise',
         $p2,
     )->then(sub{
-        print join ' ', map { @$_ } @_; # => "1 not a promise 2"
+        print join ' : ', map { join ', ', @$_ } @_; # => "1 : not a promise : 2, 3"
     })
+
+=item C<collect_hash( @promises )>
+
+Like C<collect>, but flatten its returned arrayref into a single
+hash-friendly list. 
+
+C<collect_hash> can be useful to a structured hash instead
+of a long list of promise values.
+
+For example,
+
+  my $id = 12345;
+
+  collect(
+      fetch_it("http://rest.api.example.com/-/product/$id"),
+      fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+              id          => $id
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+could be rewritten as
+
+  my $id = 12345;
+
+  collect_hash(
+      id          => $id,
+      product     => fetch_it("http://rest.api.example.com/-/product/$id"),
+      suggestions => fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      reviews     => fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my %results = @_;
+          $cv->send(\%results);
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+Note that all promise values of the key/value pairs passed to C<collect_hash>
+must return a scalar or nothing, as returning more than one value would
+mess up the returned hash format. If a promise does return more than
+one value, C<collect_hash> will consider it as having failed. 
+
+If you know that a
+promise can return more than one value, you can do:
+
+    my $collected = collect_hash(
+        this => $promise_returning_scalar,
+        that => $promise_returning_list->then(sub{ [ @_ ] } ),
+    );
 
 =back
 

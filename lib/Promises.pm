@@ -30,7 +30,10 @@ sub deferred(;&) {
     my $promise = $Backend->new;
 
     if ( my $code = shift ) {
-        $code->($promise);
+        $promise->resolve;
+        return $promise->then(sub{
+            $code->($promise);
+        });
     }
 
     return $promise;
@@ -274,23 +277,25 @@ using Promises with L<Mojo::UserAgent>.
 This just creates an instance of the L<Promises::Deferred> class
 it is purely for convenience.
 
-Can take a coderef, which is passed the promise as its parameter.
+Can take a coderef, which will be dealt with as a C<then> argument.
 
-    my $promise = deferred;
+    my $promise = deferred sub {
+        ... do stuff ...
 
-    ... do stuff ...
-
-    $promise->resolve( @something );
+        return $something;
+    };
 
     # equivalent to
 
-    my $promise = deferred sub {
-        my $promise = shift;
+    my $dummy = deferred;
 
+    my $promise = $dummy->then(sub {
         ... do stuff ...
 
-        $promise->resolve( @something );
-    };
+        return $something;
+    });
+
+    $dummy->resolve;
 
 =item C<resolved( @values )>
 

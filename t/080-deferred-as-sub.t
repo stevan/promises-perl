@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 use Test::Requires 'AnyEvent';
 
 use lib 't/lib';
@@ -15,13 +15,18 @@ use Promises qw/ deferred /;
 my $cv = AE::cv;
 
 my $promise = deferred {
-    my $d = shift;
-
-    delay_me(2)->then(sub{ $d->resolve; $cv->send });
+    delay_me(2)->then(sub{ $cv->send });
 };
 
-is $promise->status => 'in progress';
+my $bad_promise = deferred {
+    delay_me(2)->then(sub{ die "oops"; });
+};
+
+is $promise->status     => 'in progress';
+is $bad_promise->status => 'in progress';
 
 $cv->recv;
 
 is $promise->status => 'resolved';
+
+is $bad_promise->status => 'rejected';

@@ -1,8 +1,18 @@
 package Promises::Cookbook::TIMTOWTDI;
-
+$Promises::Cookbook::TIMTOWTDI::VERSION = '0.94';
 # ABSTRACT: Counter examples to Promises
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Promises::Cookbook::TIMTOWTDI - Counter examples to Promises
+
+=head1 VERSION
+
+version 0.94
 
 =head1 DESCRIPTION
 
@@ -129,8 +139,15 @@ please let me know.
 
 ... TODO
 
+=head1 AUTHOR
+
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
 =cut
-
-__END__
-
-

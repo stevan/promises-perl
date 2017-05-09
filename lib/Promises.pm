@@ -1,5 +1,8 @@
 package Promises;
-
+BEGIN {
+  $Promises::AUTHORITY = 'cpan:STEVAN';
+}
+$Promises::VERSION = '0.94';
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -59,6 +62,16 @@ sub collect {
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Promises - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 0.94
 
 =head1 SYNOPSIS
 
@@ -294,9 +307,15 @@ to C<collect> originally.
 
 =back
 
+=head1 AUTHOR
 
+Stevan Little <stevan.little@iinteractive.com>
 
+=head1 COPYRIGHT AND LICENSE
 
+This software is copyright (c) 2014 by Infinity Interactive, Inc..
 
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
-
+=cut

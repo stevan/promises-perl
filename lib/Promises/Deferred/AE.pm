@@ -1,6 +1,9 @@
 package Promises::Deferred::AE;
+BEGIN {
+  $Promises::Deferred::AE::AUTHORITY = 'cpan:STEVAN';
+}
 # ABSTRACT: An implementation of Promises in Perl
-
+$Promises::Deferred::AE::VERSION = '0.94';
 use strict;
 use warnings;
 
@@ -20,6 +23,16 @@ sub _notify_backend {
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Promises::Deferred::AE - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 0.94
 
 =head1 SYNOPSIS
 
@@ -49,3 +62,15 @@ the application:
 
 =back
 
+=head1 AUTHOR
+
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

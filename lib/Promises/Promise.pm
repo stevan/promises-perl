@@ -1,5 +1,8 @@
 package Promises::Promise;
-
+BEGIN {
+  $Promises::Promise::AUTHORITY = 'cpan:STEVAN';
+}
+$Promises::Promise::VERSION = '0.94';
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -33,6 +36,16 @@ sub is_rejected    { (shift)->{'deferred'}->is_rejected }
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Promises::Promise - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 0.94
 
 =head1 DESCRIPTION
 
@@ -109,3 +122,15 @@ This calls C<is_rejected> on the proxied L<Promises::Deferred> instance.
 
 =back
 
+=head1 AUTHOR
+
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

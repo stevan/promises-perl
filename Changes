@@ -6,10 +6,11 @@ Revision history for Perl extension Promises
   [ENHANCEMENTS]
   - add support for IO::Async. (GH#62)
   - add Mojo::UserAgent example (GH#56, powerman)
-
+  - add $WARN_ON_UNHANDLED_REJECT. (GH#37, ruz)
 
   [BUG FIXES]
   - fix case where exception exists but is false. (GH#48, stuckdownawell)
+
 
 
 0.94 Monday, December 29, 2014

@@ -4,6 +4,7 @@ Revision history for Perl extension Promises
 
   [IMPROVEMENT]
   - add new function 'flat_collect'. (GH#52, yanick)
+  - add Promises::Sub. (GH#54, yanick)
 
   [DOCUMENTATION]
   - doc fix from Amelia Ireland (RT#107559)

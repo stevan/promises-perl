@@ -3,8 +3,10 @@ Revision history for Perl extension Promises
 {NEXT}
   - doc fix from Amelia Ireland (RT#107559)
 
-  [IMPROVEMENTS]
+  [ENHANCEMENTS]
   - add support for IO::Async. (GH#62)
+  - add Mojo::UserAgent example (GH#56, powerman)
+
 
   [BUG FIXES]
   - fix case where exception exists but is false. (GH#48, stuckdownawell)

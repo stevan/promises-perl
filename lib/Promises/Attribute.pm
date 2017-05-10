@@ -4,14 +4,16 @@ package Promises::Attribute;
 use strict;
 use warnings;
 
-use Attribute::Handlers;
+use Sub::Attribute;
 
 use Promises qw/ collect /;
 
-sub Promise :ATTR(CODE) {
+sub Promise :ATTR_SUB {
     my( undef, $symbol, $referent ) = @_;
 
+    warn $symbol;
     $$symbol = sub { 
+        warn join " : ", @_;
         collect( @_ )->then( sub { $referent->(map { @$_ } @_) } );
     };
 }
@@ -57,7 +59,7 @@ __END__
 
 Any function tagged with the C<:Promise> will be turned into a promise, so you can do
 
-    sub add :Promises { $_[0] + $_[1] }
+    sub add :Promise { $_[0] + $_[1] }
 
     add( 1,2 )->then(sub { say "the result is ", @_ } );
 

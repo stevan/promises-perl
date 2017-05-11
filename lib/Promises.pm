@@ -50,6 +50,16 @@ sub collect {
     my $remaining = scalar @promises;
     foreach my $i ( 0 .. $#promises ) {
         my $p = $promises[$i];
+
+        unless ( 
+            grep { ref $p eq $_ }
+                 qw/ Promises::Promise Promises::Deferred / 
+        ) {
+            $results->[$i] = [ $p ];
+            $remaining--;
+            next;
+        }
+
         $p->then(
             sub {
                 $results->[$i] = [@_];
@@ -323,6 +333,22 @@ or as a success). The eventual result of the returned promise
 object will be an array of all the results (or errors) of each
 of the C<@promises> in the order in which they where passed
 to C<collect> originally.
+
+If C<collect> is passed a value that is not a promise, it'll be wrapped
+in an arrayref and passed through. 
+
+    my $p1 = deferred;
+    my $p2 = deferred;
+    $p1->resolve(1);
+    $p2->resolve(2);
+
+    collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', map { @$_ } @_; # => "1 not a promise 2"
+    })
 
 =back
 

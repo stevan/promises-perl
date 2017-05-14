@@ -3,7 +3,7 @@ Revision history for Perl extension Promises
 {NEXT}
 
   [IMPROVEMENT]
-  - add new function 'collect_props'. (GH#52, yanick)
+  - add new function 'flat_collect'. (GH#52, yanick)
 
   [DOCUMENTATION]
   - doc fix from Amelia Ireland (RT#107559)

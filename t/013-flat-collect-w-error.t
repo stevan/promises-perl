@@ -11,14 +11,14 @@ use Test::Requires 'AnyEvent';
 use AnyEvent;
 use AsyncUtil qw[ delay_me delay_me_error ];
 
-use Promises 'collect_props';
+use Promises 'flat_collect';
 
 my $cv = AnyEvent->condvar;
 
 my $p0 = delay_me_error( 0.1 );
 my $p1 = delay_me( 0.2 );
 
-collect_props( p0 => $p0, p1 => $p1 )->then(
+flat_collect( p0 => $p0, p1 => $p1 )->then(
     sub { $cv->croak( 'We are expecting an error here, so this shouldn\'t be called' ) },
     sub { $cv->send( 'ERROR' ) }
 );

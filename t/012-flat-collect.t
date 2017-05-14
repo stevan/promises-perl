@@ -11,14 +11,14 @@ use Test::Requires 'AnyEvent';
 use AnyEvent;
 use AsyncUtil qw[ delay_me ];
 
-use Promises qw/ collect_props deferred /;
+use Promises qw/ flat_collect deferred /;
 
 my $cv = AnyEvent->condvar;
 
 my $p0 = delay_me( 0.1 );
 my $p1 = delay_me( 0.2 );
 
-collect_props( p0 => $p0, p1 => $p1, p3 => 'constant' )->then(
+flat_collect( p0 => $p0, p1 => $p1, p3 => 'constant' )->then(
     sub { $cv->send( @_ ) },
     sub { $cv->croak( 'ERROR' ) }
 );
@@ -31,23 +31,23 @@ is( $p1->status, Promises::Deferred->IN_PROGRESS, '... got the right status in p
 is_deeply(
     [ $cv->recv ],
     [
-    { p0 => 'resolved after 0.1' ,
+     p0 => 'resolved after 0.1' ,
       p1 => 'resolved after 0.2' ,
       p3 => 'constant',
-    }] ,
+    ] ,
     '... got the expected values back'
 );
 
 is( $p0->status, Promises::Deferred->RESOLVED, '... got the right status in promise 0' );
 is( $p1->status, Promises::Deferred->RESOLVED, '... got the right status in promise 1' );
 
-$p0 = collect_props( bar => deferred->resolve('foo')->promise )->then(
+$p0 = flat_collect( bar => deferred->resolve('foo')->promise )->then(
     sub {
         is shift()->[0], 'foo', 'Presolved collect';
     }
 );
 
-$p0 = collect_props( bar => deferred->reject('foo')->promise )->catch(
+$p0 = flat_collect( bar => deferred->reject('foo')->promise )->catch(
     sub {
         is shift(), 'foo', 'Prerejected collect';
     }

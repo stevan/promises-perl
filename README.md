@@ -47,18 +47,32 @@ my $all_product_info = $cv->recv;
 
 ## INSTALLATION
 
-To install this module type the following:
+First you will need to install Dist::Zilla:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+  cpanm Dist::Zilla
+
+Check for and install midding dependencies:
+
+  dzil authordeps --missing | cpanm
+
+To build the module:
+
+   dzil build
+
+Run test suite:
+
+   dzil test
+
+Install it locally:
+
+   dzil install
 
 ## DEPENDENCIES
 
 This module requires these other modules and libraries:
 
     Test::More
+    Dist::Zilla
 
 This module optionally requires these other modules and libraries in
 order to support some specific features.

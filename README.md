@@ -1,5 +1,7 @@
 # Promises for Perl
 
+[![CPAN version](https://badge.fury.io/pl/Promises.svg)](https://metacpan.org/pod/Promises)
+
 This module is an implementation of the "Promise/A+" pattern for
 asynchronous programming. Promises are meant to be a way to
 better deal with the resulting callback spaghetti that can often

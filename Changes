@@ -1,7 +1,13 @@
 Revision history for Perl extension Promises
 
 {NEXT}
+
+  [IMPROVEMENT]
+  - add new function 'flat_collect'. (GH#52, yanick)
+
+  [DOCUMENTATION]
   - doc fix from Amelia Ireland (RT#107559)
+
 
 0.94 Monday, December 29, 2014
   - fixing the other side of the AutoPrereqs 

@@ -10,7 +10,10 @@ our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [qw[ deferred collect resolved rejected ]]
+    exports    => [qw[ 
+        deferred resolved rejected 
+        collect flat_collect 
+    ]]
 };
 
 sub _set_backend {
@@ -41,6 +44,10 @@ sub deferred(;&) {
 
 sub resolved { deferred->resolve(@_) }
 sub rejected { deferred->reject(@_)  }
+
+sub flat_collect { 
+    collect(@_)->then( sub { map { @$_ } @_ }) 
+}
 
 sub collect {
     my @promises = @_;
@@ -349,6 +356,72 @@ in an arrayref and passed through.
     )->then(sub{
         print join ' ', map { @$_ } @_; # => "1 not a promise 2"
     })
+
+=item C<flat_collect( @promises )>
+
+Like C<collect>, but flatten its returned arrayref into a single
+list. 
+
+In other words, the previous example
+
+    collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', map { @$_ } @_; # => "1 not a promise 2"
+    })
+
+can be rewritten as
+
+    flat_collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', @_; # => "1 not a promise 2"
+    })
+
+C<flat_collect> can be useful to a structured hash instead
+of a long list of promise values.
+
+For example,
+
+  my $id = 12345;
+
+  collect(
+      fetch_it("http://rest.api.example.com/-/product/$id"),
+      fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+              id          => $id
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+could be rewritten as
+
+  my $id = 12345;
+
+  flat_collect(
+      id          => $id,
+      product     => fetch_it("http://rest.api.example.com/-/product/$id"),
+      suggestions => fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      reviews     => fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my %results = @_;
+          $cv->send(\%results);
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
 
 =back
 

@@ -13,6 +13,7 @@ BEGIN {
         plan skip_all => "AnyEvent is required for this test";
     }
     use_ok 'Promises::Deferred::AnyEvent';
+    use Promises 'deferred', backend => ['AnyEvent'];
 }
 
 my @out;
@@ -68,7 +69,7 @@ is $out[4], "5: OK\n", "Reject then die";
 #===================================
 sub a_promise {
 #===================================
-    my $d = Promises::Deferred::AnyEvent->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,

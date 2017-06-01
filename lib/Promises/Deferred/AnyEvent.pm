@@ -6,15 +6,16 @@ use warnings;
 
 use AnyEvent;
 
-use parent 'Promises::Deferred';
+sub notify_callback {
+    Promises::Deferred::_invoke_cbs_callback();
+}
 
-sub _notify_backend {
-    my ( $self, $callbacks, $result ) = @_;
-    AnyEvent::postpone {
-        foreach my $cb (@$callbacks) {
-            $cb->(@$result);
-        }
-    };
+sub do_notify {
+    AE::postpone \&notify_callback;
+}
+
+sub get_notify_sub {
+    return \&do_notify;
 }
 
 1;

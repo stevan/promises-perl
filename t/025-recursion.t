@@ -14,44 +14,46 @@ use AnyEvent;
 BEGIN {
     use_ok 'Promises::Deferred';
     use_ok 'Promises::Deferred::AE';
+    use Promises qw/deferred/;
 }
 
 our ( $Max, $Live, $Iter );
 
-#      class                 type        iter max
-test( 'Promises::Deferred',     'resolve', 5,  8 );
-test( 'Promises::Deferred',     'resolve', 10, 8 );
-test( 'Promises::Deferred',     'reject',  5,  8 );
-test( 'Promises::Deferred',     'reject',  10, 8 );
-test( 'Promises::Deferred::AE', 'resolve', 5,  5 );
-test( 'Promises::Deferred::AE', 'resolve', 10, 5 );
-test( 'Promises::Deferred::AE', 'reject',  5,  5 );
-test( 'Promises::Deferred::AE', 'reject',  10, 5 );
+#      backend     type    iter max
+test( 'Default',  'resolve', 5,  7 );
+test( 'Default',  'resolve', 10, 7 );
+test( 'Default',  'reject',  5,  7 );
+test( 'Default',  'reject',  10, 7 );
+test( 'AE',       'resolve', 5,  5 );
+test( 'AE',       'resolve', 10, 5 );
+test( 'AE',       'reject',  5,  5 );
+test( 'AE',       'reject',  10, 5 );
 
 #===================================
 sub test {
 #===================================
-    my ( $class, $type, $iter, $max ) = @_;
+    my ( $backend, $type, $iter, $max ) = @_;
 
     $Iter = $iter;
 
-    my $wrap = wrap_class($class);
+    wrap_deferred();
     my $cv   = AnyEvent->condvar;
 
-    test_loop( $wrap, $type eq 'reject' )
+    Promises::Deferred->_set_backend([$backend]);
+
+    test_loop( $type eq 'reject' )
         ->then( sub { $cv->send(@_) }, sub { $cv->send(@_) } );
 
-    is $cv->recv, $type . ':' . $max, "$class - $type - $iter";
+    is $cv->recv, $type . ':' . $max, "$backend - $type - $iter";
 
 }
 
 #===================================
 sub test_loop {
 #===================================
-    my $class = shift;
     my $fail  = shift;
 
-    my $d = $class->new;
+    my $d = deferred;
     my $weak_loop;
     my $loop = sub {
         if ( --$Iter == 0 ) {
@@ -60,7 +62,7 @@ sub test_loop {
         }
 
         # async promise
-        a_promise($class)
+        a_promise()
 
             # should we fail
             ->then( sub { die if $fail && $Iter == 1 } )
@@ -81,38 +83,29 @@ sub test_loop {
     return $d->promise;
 }
 
-#===================================
-sub wrap_class {
-#===================================
-    my $class         = shift;
-    my $wrapped_class = $class . '::Track';
-
-    unless ( $wrapped_class->can('new') ) {
-        eval <<CLASS or die $!;
-    package $wrapped_class;
-    use parent '$class';
-    sub new {
-        \$Live++;
-        \$Max = \$Live if \$Live > \$Max;
-        ${wrapped_class}->SUPER::new
+my $wrap_once;
+sub wrap_deferred {
+    no strict 'refs';
+    no warnings 'once', 'redefine';
+    if (!$wrap_once++) {
+        my $old_sub= \&Promises::Deferred::new;
+        *Promises::Deferred::new= sub {
+            $Live++;
+            $Max= $Live if $Live > $Max;
+            goto &$old_sub;
+        };
+        *Promises::Deferred::DESTROY= sub {
+            $Live--;
+        };
     }
-
-    sub DESTROY { \$Live-- }
-
-    1
-
-CLASS
-    }
-    $Live = 0;
-    $Max  = 0;
-    return $wrapped_class;
+    $Live= 0;
+    $Max= 0;
 }
 
 #===================================
 sub a_promise {
 #===================================
-    my ($class) = @_;
-    my $d = $class->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,

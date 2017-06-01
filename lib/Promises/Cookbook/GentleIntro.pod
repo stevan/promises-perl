@@ -555,21 +555,8 @@ L<Tail Call optimization|http://en.wikipedia.org/wiki/Tail_call> to
 keep the return stack flat, but we don't have this option.
 
 Instead, we have the C<done()> method which, like C<then()>, accepts a I<resolved> callback
-and a I<rejected> callback. But it differs from C<then()> in two ways:
-
-=over
-
-=item *
-
-It doesn't return a promise, which means that the chain ends with the C<done()> step.
-
-=item *
-
-Callbacks are not run in an C<eval> block, so calling C<die()> will throw a
-fatal exception. (Most event loops, however will catch the exception, warn,
-and continue running.)
-
-=back
+and a I<rejected> callback. But it differs from C<then()> in one way: it doesn't return
+a promise, which means that the chain ends with the C<done()> step.
 
 The code can be rewritten using C<done()> instead of C<then()> and an event
 loop specific backend, and it will happily process millions of lines without

@@ -6,17 +6,15 @@ use warnings;
 
 use EV;
 
-use parent 'Promises::Deferred';
-
-sub _notify_backend {
-    my ( $self, $callbacks, $result ) = @_;
-
+sub do_notify {
     my $w; $w = EV::timer( 0, 0, sub {
-        foreach my $cb (@$callbacks) {
-            $cb->(@$result);
-        }
+        Promises::Deferred::_invoke_cbs_callback();
         undef $w;
     });
+}
+
+sub get_notify_sub {
+    return \&do_notify;
 }
 
 1;

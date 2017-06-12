@@ -6,78 +6,51 @@ use strict;
 use warnings;
 
 use Promises::Deferred;
-our $Backend = 'Promises::Deferred';
 
 use Sub::Exporter -setup => {
     collectors => [ 'backend' => \'_set_backend' ],
     exports    => [qw[ deferred collect resolved rejected ]]
 };
 
-sub _set_backend {
-    my ( $class, $arg ) = @_;
-    my $backend = $arg->[0] or return;
-
-    unless ( $backend =~ s/^\+// ) {
-        $backend = 'Promises::Deferred::' . $backend;
-    }
-    require Module::Runtime;
-    $Backend = Module::Runtime::use_module($backend) || return;
-    return 1;
-
-}
-
-sub deferred(;&) { 
-    my $promise = $Backend->new;
-
-    if ( my $code = shift ) {
-        $promise->resolve;
-        return $promise->then(sub{
-            $code->($promise);
-        });
-    }
-
-    return $promise;
+BEGIN {
+    no strict 'refs';
+    no warnings 'once';
+    *deferred=    \&Promises::Deferred::deferred;
+    *_set_backend= \&Promises::Deferred::_set_backend;
 }
 
 sub resolved { deferred->resolve(@_) }
 sub rejected { deferred->reject(@_)  }
 
 sub collect {
-    my @promises = @_;
-
-    my $all_done  = $Backend->new;
-    my $results   = [];
-    my $remaining = scalar @promises;
-    foreach my $i ( 0 .. $#promises ) {
-        my $p = $promises[$i];
-
-        unless ( 
-            grep { ref $p eq $_ }
-                 qw/ Promises::Promise Promises::Deferred / 
-        ) {
-            $results->[$i] = [ $p ];
-            $remaining--;
-            next;
-        }
-
-        $p->then(
-            sub {
-                $results->[$i] = [@_];
-                $remaining--;
-                if (   $remaining == 0
-                    && $all_done->status ne $all_done->REJECTED )
-                {
-                    $all_done->resolve(@$results);
+    my $remaining= 0+@_;
+    my @values;
+    my $failed= 0;
+    my $then_what= deferred();
+    my $i= 0;
+    for my $p (@_) {
+        if ($p->can('then')) {
+            my $i= $i;
+            $p->then(sub {
+                $values[$i]= [@_];
+                if ((--$remaining) == 0) {
+                    $then_what->resolve(@values);
                 }
-            },
-            sub { $all_done->reject(@_) },
-        );
+            }, sub {
+                if (!$failed++) {
+                    $then_what->reject(@_);
+                }
+            });
+        } else {
+            $remaining--;
+            $values[$i]= [ $p ];
+        }
+        $i++;
     }
-
-    $all_done->resolve(@$results)
-        if $remaining == 0 and $all_done->is_in_progress;
-
-    $all_done->promise;
+    if (!$remaining && $then_what->is_in_progress) {
+        $then_what->resolve(@values);
+    }
+    return $then_what->promise;
 }
 
 1;
@@ -142,6 +115,14 @@ It is B<HIGHLY> recommended that you test things very thoroughly
 before upgrading to this version.
 
 =head1 BACKWARDS COMPATIBILITY WARNING
+
+In version up to and including 0.94, calling C<die> from a C<done>
+callback would cause the entire promise chain to stop executing.
+Although this was documented as unsafe behavior, this did result
+in predictable side-effects, depending on the chosen event loop.
+This behavior is no longer supported as of version 0.95, and calling
+C<die> from a C<done> callback is now handled like it would be for a
+C<then> callback.
 
 In version up to and including 0.08 there was a bug in how
 rejected promises were handled. According to the spec, a
@@ -325,8 +306,7 @@ the provided C<@values>. Purely a shortcut for
 
 =item C<collect( @promises )>
 
-The only export for this module is the C<collect> function, which
-accepts an array of L<Promises::Promise> objects and then
+Accepts an array of L<Promises::Promise> objects and then
 returns a L<Promises::Promise> object which will be called
 once all the C<@promises> have completed (either as an error
 or as a success). The eventual result of the returned promise

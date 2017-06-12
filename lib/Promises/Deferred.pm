@@ -4,185 +4,206 @@ package Promises::Deferred;
 
 use strict;
 use warnings;
-
-use Scalar::Util qw[ blessed reftype ];
-use Carp qw[ confess ];
-
+use Ref::Util qw/is_blessed_ref is_coderef/;
+use Promises::Deferred::Default;
 use Promises::Promise;
 
-use constant IN_PROGRESS => 'in progress';
-use constant RESOLVED    => 'resolved';
-use constant REJECTED    => 'rejected';
+use constant {
+    IN_PROGRESS => 'in progress',
+    RESOLVED    => 'resolved',
+    REJECTED    => 'rejected',
+};
+my %statuses= (
+    0 => IN_PROGRESS,
+    1 => RESOLVED,
+    2 => REJECTED
+);
+
+my @pending_callbacks;
+my $notify_sub= Promises::Deferred::Default->get_notify_sub;
+sub _set_backend {
+    my ( $class, $arg ) = @_;
+    my $backend = $arg->[0] or return;
+    unless ( $backend =~ s/^\+// ) {
+        $backend = 'Promises::Deferred::' . $backend;
+    }
+
+    eval "use $backend; 1;" or return;
+    $notify_sub= $backend->get_notify_sub;
+}
+
+# The callback our backends will call; this will handle all the promises that have pending notifications
+sub _invoke_cbs_callback {
+    while (my $cb= shift @pending_callbacks) {
+        _invoke_cb($cb);
+
+        # Explicit undef. Why? Because this is where we're going to spend almost all of our time:
+        # deallocating Perl objects. So make it explicit as profilers will point people here.
+        undef $cb;
+    }
+}
 
 sub new {
-    my $class = shift;
-    bless {
-        resolved => [],
-        rejected => [],
-        status   => IN_PROGRESS
-    } => $class;
+    return bless \{cb=>[], state=>0}, __PACKAGE__;
 }
 
-sub promise { Promises::Promise->new(shift) }
-sub status  { (shift)->{'status'} }
-sub result  { (shift)->{'result'} }
-
-# predicates for all the status possibilities
-sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
-sub is_resolved    { (shift)->{'status'} eq RESOLVED }
-sub is_rejected    { (shift)->{'status'} eq REJECTED }
-sub is_done        { ! $_[0]->is_in_progress }
-
-# the three possible states according to the spec ...
-sub is_unfulfilled { (shift)->is_in_progress }
-sub is_fulfilled   { $_[0]->is_resolved }
-sub is_failed      { $_[0]->is_rejected }
-
-sub resolve {
-    my $self = shift;
-
-    die "Cannot resolve. Already  " . $self->status
-        unless $self->is_in_progress;
-
-    $self->{'result'} = [@_];
-    $self->{'status'} = RESOLVED;
-    $self->_notify;
-    $self;
-}
-
-sub reject {
-    my $self = shift;
-    die "Cannot reject. Already  " . $self->status
-        unless $self->is_in_progress;
-
-    $self->{'result'} = [@_];
-    $self->{'status'} = REJECTED;
-    $self->_notify;
-    $self;
-}
-
-sub then {
-    my $self = shift;
-    my ( $callback, $error ) = $self->_callable_or_undef(@_);
-
-    my $d = ( ref $self )->new;
-    push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
-    push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
-
-    $self->_notify unless $self->is_in_progress;
-    $d->promise;
-}
-
-sub chain { 
-    my $self = shift;
-    $self = $self->then($_) for @_;
+sub deferred (;&) {
+    my $self= new();
+    if (my $code= shift) {
+        $self->resolve;
+        return $self->then(sub{
+            $code->($self);
+        });
+    }
     return $self;
 }
 
-sub catch {
-    my $self = shift;
-    $self->then( undef, @_ );
+sub _invoke_cbs {
+    my ($cbs)= @_;
+    return unless @$cbs;
+
+    my $should_schedule= !@pending_callbacks;
+    push @pending_callbacks, @$cbs;
+
+    if ($should_schedule) {
+        $notify_sub->();
+    }
 }
 
-sub done {
-    my $self = shift;
-    my ( $callback, $error ) = $self->_callable_or_undef(@_);
-    push @{ $self->{'resolved'} } => $callback if defined $callback;
-    push @{ $self->{'rejected'} } => $error    if defined $error;
+sub _invoke_cb {
+    my $cb= shift;
+    my $self= shift @$cb;
 
-    $self->_notify unless $self->is_in_progress;
-    ();
+    if (my $invoke_callback= $cb->[$$self->{state}]) {
+        eval {
+            my @result= $invoke_callback->(@{$$self->{result}});
+            if (my $next= $cb->[0]) {
+                if (@result == 1 && is_blessed_ref($result[0]) && $result[0]->can('then')) {
+                    if ($result[0]->isa("Promises::Promise")) {
+                        _replace_promise($next, ${$result[0]});
+                    } elsif ($result[0]->isa("Promises::Deferred")) {
+                        _replace_promise($next, $result[0]);
+                    } else {
+                        $result[0]->then(sub {
+                            $next->resolve(@_); ();
+                        }, sub {
+                            $next->reject(@_); ();
+                        });
+                    }
+                } else {
+                    $next->resolve(@result);
+                }
+            }
+            1;
+        } or do {
+            my $error= $@ || '';
+            $cb->[0]->reject($error) if $cb->[0];
+        };
+
+    } elsif ($cb->[0]) { # Passthrough
+        if ($$self->{state} == 1) {
+            $cb->[0]->resolve(@{$$self->{result}});
+        } else {
+            $cb->[0]->reject(@{$$self->{result}});
+        }
+    }
+
+    1;
+}
+
+# Optimization: when returning a promise from a callback,
+# we can replace the original promise with the new one.
+# After all, its results, state and callback will all
+# be equal to those of the newly returned promise.
+sub _replace_promise {
+    my ($orig_promise, $new_promise)= @_;
+    my $orig_inner= $$orig_promise;
+    my $new_inner= $$new_promise;
+
+    # Do the replacement
+    $$orig_promise= $$new_promise;
+
+    my $callbacks= delete $orig_inner->{cb};
+    if ($new_inner->{state}) {
+        _invoke_cbs($callbacks);
+    } else {
+        push @{$new_inner->{cb}}, @$callbacks;
+    }
+
+    return;
+}
+
+sub then {
+    my ($self, $ok, $nope)= @_;
+    my $then= defined(wantarray) ? new : undef;
+
+    my $cb_arr= [ $self, $then, $ok, $nope ];
+    if ($$self->{state}) {
+        _invoke_cbs([$cb_arr]);
+        return $then;
+    }
+    push @{$$self->{cb}}, $cb_arr;
+
+    return $then ? $then->promise : undef;
+}
+
+sub resolve {
+    my $self= shift;
+    if ($$self->{state}) {
+        die "Cannot resolve twice!";
+    }
+    $$self->{state}= 1;
+    $$self->{result}= [@_];
+    _invoke_cbs(delete $$self->{cb});
+    return $self;
+}
+
+sub reject {
+    my $self= shift;
+    if ($$self->{state}) {
+        die "Cannot reject twice!";
+    }
+    $$self->{state}= 2;
+    $$self->{result}= [@_];
+    _invoke_cbs(delete $$self->{cb});
+    return $self;
 }
 
 sub finally {
-    my $self = shift;
-    my ($callback) = $self->_callable_or_undef(@_);
-
-    my $d = ( ref $self )->new;
-
-    if (defined $callback) {
-        my ( @result, $method );
-        my $finish_d = sub { $d->$method(@result); () };
-
-        my $f = sub {
-            ( $method, @result ) = @_;
-            local $@;
-            my ($p) = eval { $callback->(@result) };
-            if ( $p && blessed $p && $p->can('then') ) {
-                return $p->then( $finish_d, $finish_d );
-            }
-            $finish_d->();
-            ();
-        };
-
-        push @{ $self->{'resolved'} } => sub { $f->( 'resolve', @_ ) };
-        push @{ $self->{'rejected'} } => sub { $f->( 'reject',  @_ ) };
-
-        $self->_notify unless $self->is_in_progress;
-    }
-    $d->promise;
-
-}
-
-sub _wrap {
-    my ( $self, $d, $f, $method ) = @_;
-
-    return sub { $d->$method( @{ $self->result } ) }
-        unless defined $f;
-
-    return sub {
-        local $@;
-        my ( @results, $error );
-        eval {
-            @results = do { $f->(@_) };
-            1;
-        }
-            || do { $error = $@ || 'Unknown reason' };
-
-        if ($error) {
-            $d->reject($error);
-        }
-        elsif ( @results == 1
-            and blessed $results[0]
-            and $results[0]->can('then') )
-        {
-            $results[0]->then(
-                sub { $d->resolve(@_); () },
-                sub { $d->reject(@_);  () },
-            );
-        }
-        else {
-            $d->resolve(@results);
-        }
-        return;
+    my ($self, $sub)= @_;
+    my ($ok, @result);
+    my $finally= sub {
+        return ($ok ? Promises::resolved(@result) : Promises::rejected(@result));
     };
+    return $self->then(sub {
+        $ok= 1; @result= @_;
+        goto &$sub;
+    }, sub {
+        $ok= 0; @result= @_;
+        goto &$sub;
+    })->then($finally, $finally);
 }
 
-sub _notify {
-    my ($self) = @_;
+# Now for all the convenience methods
+sub done    { &then; (); }
+sub catch   { splice(@_, 1, 0, undef); goto &then; }
+sub status  { $statuses{${$_[0]}->{state}} }
+sub chain   { my $self= shift; $self= $self->then($_) for @_; return $self; }
 
-    my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
+# predicates for all the status possibilities
+sub is_in_progress { ${$_[0]}->{state} == 0 }
+sub is_resolved    { ${$_[0]}->{state} == 1 }
+sub is_rejected    { ${$_[0]}->{state} == 2 }
+sub is_done        { ${$_[0]}->{state} != 0 }
 
-    $self->{'resolved'} = [];
-    $self->{'rejected'} = [];
+# the three possible states according to the spec ...
+sub is_unfulfilled { ${$_[0]}->{state} == 0 }
+sub is_fulfilled   { ${$_[0]}->{state} == 1 }
+sub is_failed      { ${$_[0]}->{state} == 2 }
 
-    return $self->_notify_backend( $cbs, $self->result );
-}
+sub result         { ${$_[0]}->{result} }
+sub promise        { bless \$_[0], 'Promises::Promise' }
 
-sub _notify_backend {
-    my ( $self, $cbs, $result ) = @_;
-    $_->(@$result) foreach @$cbs;
-}
-
-sub _callable_or_undef {
-    shift;
-    map {
-        # coderef or object overloaded as coderef
-        ref && reftype $_ eq 'CODE' || blessed $_ && $_->can('()')
-            ? $_
-            : undef
-    } @_;
-}
 
 1;
 
@@ -319,12 +340,6 @@ the corresponding C<reject>.
 Unlike the C<then()> method, C<done()> returns an empty list specifically to
 break the chain and to avoid deep recursion.  See the explanation in
 L<Promises::Cookbook::Recursion>.
-
-Also unlike the C<then()> method, C<done()> callbacks are not wrapped in an
-C<eval> block, so calling C<die()> is not safe. What will happen if a C<done>
-callback calls C<die()> depends on which event loop you are running: the pure
-Perl L<AnyEvent::Loop> will throw an exception, while L<EV> and
-L<Mojo::IOLoop> will warn and continue running.
 
 =item C<finally( $callback )>
 

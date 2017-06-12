@@ -13,6 +13,7 @@ BEGIN {
         plan skip_all => "AnyEvent is required for this test";
     }
     use_ok 'Promises::Deferred::AnyEvent';
+    use Promises 'deferred', backend => ['AnyEvent'];
 }
 
 my @out;
@@ -54,8 +55,8 @@ is( exception {
         my $w = AE::timer( 1, 0, sub { $cv->send } );
         $cv->recv;
     },
-    "Final\n",
-    "Exception in AnyEvent PP done dies"
+    undef,
+    "Exception in AnyEvent PP is swallowed"
 );
 
 is $out[0], '1: OK',   "Resolve";
@@ -68,7 +69,7 @@ is $out[4], "5: OK\n", "Reject then die";
 #===================================
 sub a_promise {
 #===================================
-    my $d = Promises::Deferred::AnyEvent->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,

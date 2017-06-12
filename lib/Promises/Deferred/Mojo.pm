@@ -6,15 +6,16 @@ use warnings;
 
 use Mojo::IOLoop;
 
-use parent 'Promises::Deferred';
+sub notify_callback {
+    Promises::Deferred::_invoke_cbs_callback();
+}
 
-sub _notify_backend {
-    my ( $self, $callbacks, $result ) = @_;
-    Mojo::IOLoop->timer(0,sub {
-        foreach my $cb (@$callbacks) {
-            $cb->(@$result);
-        }
-    });
+sub do_notify {
+    Mojo::IOLoop->timer(0, \&notify_callback);
+}
+
+sub get_notify_sub {
+    return \&do_notify;
 }
 
 1;

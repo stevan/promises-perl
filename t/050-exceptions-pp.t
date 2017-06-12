@@ -19,6 +19,7 @@ BEGIN {
         exit;
     }
     use_ok 'Promises::Deferred';
+    use Promises 'deferred';
 }
 
 my @out;
@@ -60,8 +61,8 @@ is( exception {
         my $w = AE::timer( 1, 0, sub { $cv->send } );
         $cv->recv;
     },
-    "Final\n",
-    "Exception in PP done dies"
+    undef,
+    "Exception in PP done is swallowed"
 );
 
 is $out[0], '1: OK',   "Resolve";
@@ -73,7 +74,7 @@ is $out[4], "5: OK\n", "Reject then die";
 #===================================
 sub a_promise {
 #===================================
-    my $d = Promises::Deferred->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,

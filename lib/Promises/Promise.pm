@@ -5,32 +5,22 @@ package Promises::Promise;
 use strict;
 use warnings;
 
-use Scalar::Util qw[ blessed ];
-use Carp qw[ confess ];
+sub then    { ${shift()}->then(@_) }
+sub chain   { ${shift()}->chain(@_) }
+sub catch   { ${shift()}->catch(@_) }
+sub done    { ${shift()}->done(@_) }
+sub finally { ${shift()}->finally(@_) }
+sub status  { ${shift()}->status }
+sub result  { ${shift()}->result }
 
-sub new {
-    my ( $class, $deferred ) = @_;
-    ( blessed $deferred && $deferred->isa('Promises::Deferred') )
-        || confess "You must supply an instance of Promises::Deferred";
-    bless { 'deferred' => $deferred } => $class;
-}
+sub is_unfulfilled { ${shift()}->is_unfulfilled }
+sub is_fulfilled   { ${shift()}->is_fulfilled }
+sub is_failed      { ${shift()}->is_failed }
+sub is_done        { ${shift()}->is_done }
 
-sub then    { (shift)->{'deferred'}->then(@_) }
-sub chain   { (shift)->{'deferred'}->chain(@_) }
-sub catch   { (shift)->{'deferred'}->catch(@_) }
-sub done    { (shift)->{'deferred'}->done(@_) }
-sub finally { (shift)->{'deferred'}->finally(@_) }
-sub status  { (shift)->{'deferred'}->status }
-sub result  { (shift)->{'deferred'}->result }
-
-sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
-sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled }
-sub is_failed      { (shift)->{'deferred'}->is_failed }
-sub is_done        { (shift)->{'deferred'}->is_done }
-
-sub is_in_progress { (shift)->{'deferred'}->is_in_progress }
-sub is_resolved    { (shift)->{'deferred'}->is_resolved }
-sub is_rejected    { (shift)->{'deferred'}->is_rejected }
+sub is_in_progress { ${shift()}->is_in_progress }
+sub is_resolved    { ${shift()}->is_resolved }
+sub is_rejected    { ${shift()}->is_rejected }
 
 1;
 
@@ -54,12 +44,6 @@ are meant to work together.
 =head1 METHODS
 
 =over 4
-
-=item C<new( $deferred )>
-
-The constructor only takes one parameter and that is an
-instance of L<Promises::Deferred> that you want this
-object to proxy.
 
 =item C<then( $callback, $error )>
 
@@ -118,4 +102,3 @@ This calls C<is_rejected> on the proxied L<Promises::Deferred> instance.
 This calls C<is_done> on the proxied L<Promises::Deferred> instance.
 
 =back
-

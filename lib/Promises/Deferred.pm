@@ -4,7 +4,7 @@ package Promises::Deferred;
 
 use strict;
 use warnings;
-use Ref::Util qw/is_blessed_ref is_coderef/;
+use Ref::Util qw/is_blessed_ref is_coderef is_blessed_refref is_blessed_hashref/;
 use Promises::Deferred::Default;
 use Promises::Promise;
 
@@ -47,10 +47,11 @@ sub _invoke_cbs_callback {
 
 sub new {
     my ($class)= @_;
-    return bless \{
+    return bless {
         cb => [],
         state => 0,
         result => undef,
+        chained_promises => undef,
     }, $class;
 }
 
@@ -81,15 +82,15 @@ sub _invoke_cb {
     my $cb= shift;
     my $self= shift @$cb;
 
-    if (my $invoke_callback= $cb->[$$self->{state}]) {
+    if (my $invoke_callback= $cb->[$self->{state}]) {
         eval {
-            my @result= $invoke_callback->(@{$$self->{result}});
+            my @result= $invoke_callback->(@{$self->{result}});
             if (my $next= $cb->[0]) {
                 if (@result == 1 && is_blessed_ref($result[0]) && $result[0]->can('then')) {
-                    if ($result[0]->isa("Promises::Promise")) {
-                        _replace_promise($next, ${$result[0]});
-                    } elsif ($result[0]->isa("Promises::Deferred")) {
-                        _replace_promise($next, $result[0]);
+                    if (is_blessed_refref($result[0]) && $result[0]->isa("Promises::Promise")) {
+                        _chain_promise($next, ${$result[0]});
+                    } elsif (is_blessed_hashref($result[0]) && $result[0]->isa("Promises::Deferred")) {
+                        _chain_promise($next, $result[0]);
                     } else {
                         $result[0]->then(sub {
                             $next->resolve(@_); ();
@@ -108,35 +109,45 @@ sub _invoke_cb {
         };
 
     } elsif ($cb->[0]) { # Passthrough
-        if ($$self->{state} == 1) {
-            $cb->[0]->resolve(@{$$self->{result}});
+        if ($self->{state} == 1) {
+            $cb->[0]->resolve(@{$self->{result}});
         } else {
-            $cb->[0]->reject(@{$$self->{result}});
+            $cb->[0]->reject(@{$self->{result}});
         }
     }
 
     1;
 }
 
-# Optimization: when returning a promise from a callback,
-# we can replace the original promise with the new one.
-# After all, its results, state and callback will all
-# be equal to those of the newly returned promise.
-sub _replace_promise {
-    my ($orig_promise, $new_promise)= @_;
-    my $orig_inner= $$orig_promise;
-    my $new_inner= $$new_promise;
-
-    # Do the replacement
-    $$orig_promise= $$new_promise;
-
-    my $callbacks= delete $orig_inner->{cb};
-    if ($new_inner->{state}) {
-        _invoke_cbs($callbacks);
+# Optimization: when returning a promsie from a callback,
+# don't call then() on it if it's one of ours, we can just
+# chain them internally by completing them at the same time.
+sub _chain_promise {
+    my ($target, $source)= @_;
+    if ($source->{state}) {
+        $target->{state}= $source->{state};
+        $target->{result}= $source->{result};
+        _invoke_cbs(delete $target->{cb});
     } else {
-        push @{$new_inner->{cb}}, @$callbacks;
+        push @{$source->{chained_promises} ||= []}, $target;
     }
+    return;
+}
 
+sub _handle_chain {
+    my ($self)= @_;
+
+    my ($state, $result)= @$self{qw/state result/};
+
+    my @todo= @{delete $self->{chained_promises}};
+    while (my $promise= shift @todo) {
+        $promise->{state}= $state;
+        $promise->{result}= $result;
+        _invoke_cbs(delete $promise->{cb});
+        if (my $chain= delete $promise->{chained_promises}) {
+            push @todo, @$chain;
+        }
+    }
     return;
 }
 
@@ -145,34 +156,40 @@ sub then {
     my $then= defined(wantarray) ? __PACKAGE__->new() : undef;
 
     my $cb_arr= [ $self, $then, $ok, $nope ];
-    if ($$self->{state}) {
+    if ($self->{state}) {
         _invoke_cbs([$cb_arr]);
         return $then;
     }
-    push @{$$self->{cb}}, $cb_arr;
+    push @{$self->{cb}}, $cb_arr;
 
     return $then ? $then->promise : undef;
 }
 
 sub resolve {
     my $self= shift;
-    if ($$self->{state}) {
+    if ($self->{state}) {
         die "Cannot resolve twice!";
     }
-    $$self->{state}= 1;
-    $$self->{result}= [@_];
-    _invoke_cbs(delete $$self->{cb});
+    $self->{state}= 1;
+    $self->{result}= [@_];
+    _invoke_cbs(delete $self->{cb});
+
+    $self->_handle_chain if $self->{chained_promises};
+
     return $self;
 }
 
 sub reject {
     my $self= shift;
-    if ($$self->{state}) {
+    if ($self->{state}) {
         die "Cannot reject twice!";
     }
-    $$self->{state}= 2;
-    $$self->{result}= [@_];
-    _invoke_cbs(delete $$self->{cb});
+    $self->{state}= 2;
+    $self->{result}= [@_];
+    _invoke_cbs(delete $self->{cb});
+
+    $self->_handle_chain if $self->{chained_promises};
+
     return $self;
 }
 
@@ -194,21 +211,21 @@ sub finally {
 # Now for all the convenience methods
 sub done    { &then; (); }
 sub catch   { splice(@_, 1, 0, undef); goto &then; }
-sub status  { $statuses{${$_[0]}->{state}} }
+sub status  { $statuses{$_[0]{state}} }
 sub chain   { my $self= shift; $self= $self->then($_) for @_; return $self; }
 
 # predicates for all the status possibilities
-sub is_in_progress { ${$_[0]}->{state} == 0 }
-sub is_resolved    { ${$_[0]}->{state} == 1 }
-sub is_rejected    { ${$_[0]}->{state} == 2 }
-sub is_done        { ${$_[0]}->{state} != 0 }
+sub is_in_progress { $_[0]{state} == 0 }
+sub is_resolved    { $_[0]{state} == 1 }
+sub is_rejected    { $_[0]{state} == 2 }
+sub is_done        { $_[0]{state} != 0 }
 
 # the three possible states according to the spec ...
-sub is_unfulfilled { ${$_[0]}->{state} == 0 }
-sub is_fulfilled   { ${$_[0]}->{state} == 1 }
-sub is_failed      { ${$_[0]}->{state} == 2 }
+sub is_unfulfilled { $_[0]{state} == 0 }
+sub is_fulfilled   { $_[0]{state} == 1 }
+sub is_failed      { $_[0]{state} == 2 }
 
-sub result         { ${$_[0]}->{result} }
+sub result         { $_[0]{result} }
 sub promise        { Promises::Promise->_new($_[0]) }
 
 

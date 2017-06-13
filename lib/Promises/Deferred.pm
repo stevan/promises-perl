@@ -12,11 +12,15 @@ use constant {
     IN_PROGRESS => 'in progress',
     RESOLVED    => 'resolved',
     REJECTED    => 'rejected',
+
+    STATE_PROGRESS => 0,
+    STATE_RESOLVED => 1,
+    STATE_REJECTED => 2,
 };
 my %statuses= (
-    0 => IN_PROGRESS,
-    1 => RESOLVED,
-    2 => REJECTED
+    STATE_PROGRESS ,=> IN_PROGRESS,
+    STATE_RESOLVED ,=> RESOLVED,
+    STATE_REJECTED ,=> REJECTED,
 );
 
 my @pending_callbacks;
@@ -49,7 +53,7 @@ sub new {
     my ($class)= @_;
     return bless {
         cb => [],
-        state => 0,
+        state => STATE_PROGRESS,
         result => undef,
         chained_promises => undef,
     }, $class;
@@ -109,7 +113,7 @@ sub _invoke_cb {
         };
 
     } elsif ($cb->[0]) { # Passthrough
-        if ($self->{state} == 1) {
+        if ($self->{state} == STATE_RESOLVED) {
             $cb->[0]->resolve(@{$self->{result}});
         } else {
             $cb->[0]->reject(@{$self->{result}});
@@ -170,7 +174,7 @@ sub resolve {
     if ($self->{state}) {
         die "Cannot resolve twice!";
     }
-    $self->{state}= 1;
+    $self->{state}= STATE_RESOLVED;
     $self->{result}= [@_];
     _invoke_cbs(delete $self->{cb});
 
@@ -184,7 +188,7 @@ sub reject {
     if ($self->{state}) {
         die "Cannot reject twice!";
     }
-    $self->{state}= 2;
+    $self->{state}= STATE_REJECTED;
     $self->{result}= [@_];
     _invoke_cbs(delete $self->{cb});
 
@@ -215,15 +219,15 @@ sub status  { $statuses{$_[0]{state}} }
 sub chain   { my $self= shift; $self= $self->then($_) for @_; return $self; }
 
 # predicates for all the status possibilities
-sub is_in_progress { $_[0]{state} == 0 }
-sub is_resolved    { $_[0]{state} == 1 }
-sub is_rejected    { $_[0]{state} == 2 }
-sub is_done        { $_[0]{state} != 0 }
+sub is_in_progress { $_[0]{state} == STATE_PROGRESS }
+sub is_resolved    { $_[0]{state} == STATE_RESOLVED }
+sub is_rejected    { $_[0]{state} == STATE_REJECTED }
+sub is_done        { $_[0]{state} != STATE_PROGRESS }
 
 # the three possible states according to the spec ...
-sub is_unfulfilled { $_[0]{state} == 0 }
-sub is_fulfilled   { $_[0]{state} == 1 }
-sub is_failed      { $_[0]{state} == 2 }
+sub is_unfulfilled { $_[0]{state} == STATE_PROGRESS }
+sub is_fulfilled   { $_[0]{state} == STATE_RESOLVED }
+sub is_failed      { $_[0]{state} == STATE_REJECTED }
 
 sub result         { $_[0]{result} }
 sub promise        { Promises::Promise->_new($_[0]) }

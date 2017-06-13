@@ -5,6 +5,11 @@ package Promises::Promise;
 use strict;
 use warnings;
 
+sub _new {
+    my ($class, $deferred)= @_;
+    return bless \$deferred, $class;
+}
+
 sub then    { ${shift()}->then(@_) }
 sub chain   { ${shift()}->chain(@_) }
 sub catch   { ${shift()}->catch(@_) }

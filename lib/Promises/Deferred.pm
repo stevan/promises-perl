@@ -44,11 +44,16 @@ sub _invoke_cbs_callback {
 }
 
 sub new {
-    return bless \{cb=>[], state=>0}, __PACKAGE__;
+    my ($class)= @_;
+    return bless \{
+        cb => [],
+        state => 0,
+        result => undef,
+    }, $class;
 }
 
 sub deferred (;&) {
-    my $self= new();
+    my $self= __PACKAGE__->new();
     if (my $code= shift) {
         $self->resolve;
         return $self->then(sub{
@@ -135,7 +140,7 @@ sub _replace_promise {
 
 sub then {
     my ($self, $ok, $nope)= @_;
-    my $then= defined(wantarray) ? new : undef;
+    my $then= defined(wantarray) ? __PACKAGE__->new() : undef;
 
     my $cb_arr= [ $self, $then, $ok, $nope ];
     if ($$self->{state}) {
@@ -202,7 +207,7 @@ sub is_fulfilled   { ${$_[0]}->{state} == 1 }
 sub is_failed      { ${$_[0]}->{state} == 2 }
 
 sub result         { ${$_[0]}->{result} }
-sub promise        { bless \$_[0], 'Promises::Promise' }
+sub promise        { Promises::Promise->_new($_[0]) }
 
 
 1;

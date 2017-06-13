@@ -28,7 +28,9 @@ sub _set_backend {
         $backend = 'Promises::Deferred::' . $backend;
     }
 
-    eval "use $backend; 1;" or return;
+    require Module::Runtime;
+    Module::Runtime::use_module($backend) || return;
+
     $notify_sub= $backend->get_notify_sub;
 }
 

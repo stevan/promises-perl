@@ -17,14 +17,14 @@ use constant {
     STATE_RESOLVED => 1,
     STATE_REJECTED => 2,
 };
-my %statuses= (
+my %statuses = (
     STATE_PROGRESS ,=> IN_PROGRESS,
     STATE_RESOLVED ,=> RESOLVED,
     STATE_REJECTED ,=> REJECTED,
 );
 
 my @pending_callbacks;
-my $notify_sub= Promises::Deferred::Default->get_notify_sub;
+my $notify_sub = Promises::Deferred::Default->get_notify_sub;
 sub _set_backend {
     my ( $class, $arg ) = @_;
     my $backend = $arg->[0] or return;
@@ -35,12 +35,12 @@ sub _set_backend {
     require Module::Runtime;
     Module::Runtime::use_module($backend) || return;
 
-    $notify_sub= $backend->get_notify_sub;
+    $notify_sub = $backend->get_notify_sub;
 }
 
 # The callback our backends will call; this will handle all the promises that have pending notifications
 sub _invoke_cbs_callback {
-    while (my $cb= shift @pending_callbacks) {
+    while (my $cb = shift @pending_callbacks) {
         _invoke_cb($cb);
 
         # Explicit undef. Why? Because this is where we're going to spend almost all of our time:
@@ -50,7 +50,7 @@ sub _invoke_cbs_callback {
 }
 
 sub new {
-    my ($class)= @_;
+    my ($class) = @_;
     return bless {
         cb => [],
         state => STATE_PROGRESS,
@@ -60,8 +60,8 @@ sub new {
 }
 
 sub deferred (;&) {
-    my $self= __PACKAGE__->new();
-    if (my $code= shift) {
+    my $self = __PACKAGE__->new();
+    if (my $code = shift) {
         $self->resolve;
         return $self->then(sub{
             $code->($self);
@@ -71,10 +71,10 @@ sub deferred (;&) {
 }
 
 sub _invoke_cbs {
-    my ($cbs)= @_;
+    my ($cbs) = @_;
     return unless @$cbs;
 
-    my $should_schedule= !@pending_callbacks;
+    my $should_schedule = !@pending_callbacks;
     push @pending_callbacks, @$cbs;
 
     if ($should_schedule) {
@@ -83,13 +83,13 @@ sub _invoke_cbs {
 }
 
 sub _invoke_cb {
-    my $cb= shift;
-    my $self= shift @$cb;
+    my $cb = shift;
+    my $self = shift @$cb;
 
-    if (my $invoke_callback= $cb->[$self->{state}]) {
+    if (my $invoke_callback = $cb->[$self->{state}]) {
         eval {
-            my @result= $invoke_callback->(@{$self->{result}});
-            if (my $next= $cb->[0]) {
+            my @result = $invoke_callback->(@{$self->{result}});
+            if (my $next = $cb->[0]) {
                 if (@result == 1 && is_blessed_ref($result[0]) && $result[0]->can('then')) {
                     if (is_blessed_refref($result[0]) && $result[0]->isa("Promises::Promise")) {
                         _chain_promise($next, ${$result[0]});
@@ -108,7 +108,7 @@ sub _invoke_cb {
             }
             1;
         } or do {
-            my $error= $@ || '';
+            my $error = $@ || '';
             $cb->[0]->reject($error) if $cb->[0];
         };
 
@@ -127,10 +127,10 @@ sub _invoke_cb {
 # don't call then() on it if it's one of ours, we can just
 # chain them internally by completing them at the same time.
 sub _chain_promise {
-    my ($target, $source)= @_;
+    my ($target, $source) = @_;
     if ($source->{state}) {
-        $target->{state}= $source->{state};
-        $target->{result}= $source->{result};
+        $target->{state} = $source->{state};
+        $target->{result} = $source->{result};
         _invoke_cbs(delete $target->{cb});
     } else {
         push @{$source->{chained_promises} ||= []}, $target;
@@ -139,16 +139,16 @@ sub _chain_promise {
 }
 
 sub _handle_chain {
-    my ($self)= @_;
+    my ($self) = @_;
 
-    my ($state, $result)= @$self{qw/state result/};
+    my ($state, $result) = @$self{qw/state result/};
 
-    my @todo= @{delete $self->{chained_promises}};
-    while (my $promise= shift @todo) {
-        $promise->{state}= $state;
-        $promise->{result}= $result;
+    my @todo = @{delete $self->{chained_promises}};
+    while (my $promise = shift @todo) {
+        $promise->{state} = $state;
+        $promise->{result} = $result;
         _invoke_cbs(delete $promise->{cb});
-        if (my $chain= delete $promise->{chained_promises}) {
+        if (my $chain = delete $promise->{chained_promises}) {
             push @todo, @$chain;
         }
     }
@@ -156,10 +156,10 @@ sub _handle_chain {
 }
 
 sub then {
-    my ($self, $ok, $nope)= @_;
-    my $then= defined(wantarray) ? __PACKAGE__->new() : undef;
+    my ($self, $ok, $nope) = @_;
+    my $then = defined(wantarray) ? __PACKAGE__->new() : undef;
 
-    my $cb_arr= [ $self, $then, $ok, $nope ];
+    my $cb_arr = [ $self, $then, $ok, $nope ];
     if ($self->{state}) {
         _invoke_cbs([$cb_arr]);
         return $then;
@@ -170,12 +170,12 @@ sub then {
 }
 
 sub resolve {
-    my $self= shift;
+    my $self = shift;
     if ($self->{state}) {
         die "Cannot resolve twice!";
     }
-    $self->{state}= STATE_RESOLVED;
-    $self->{result}= [@_];
+    $self->{state} = STATE_RESOLVED;
+    $self->{result} = [@_];
     _invoke_cbs(delete $self->{cb});
 
     $self->_handle_chain if $self->{chained_promises};
@@ -184,12 +184,12 @@ sub resolve {
 }
 
 sub reject {
-    my $self= shift;
+    my $self = shift;
     if ($self->{state}) {
         die "Cannot reject twice!";
     }
-    $self->{state}= STATE_REJECTED;
-    $self->{result}= [@_];
+    $self->{state} = STATE_REJECTED;
+    $self->{result} = [@_];
     _invoke_cbs(delete $self->{cb});
 
     $self->_handle_chain if $self->{chained_promises};
@@ -198,16 +198,16 @@ sub reject {
 }
 
 sub finally {
-    my ($self, $sub)= @_;
+    my ($self, $sub) = @_;
     my ($ok, @result);
-    my $finally= sub {
+    my $finally = sub {
         return ($ok ? Promises::resolved(@result) : Promises::rejected(@result));
     };
     return $self->then(sub {
-        $ok= 1; @result= @_;
+        $ok = 1; @result = @_;
         goto &$sub;
     }, sub {
-        $ok= 0; @result= @_;
+        $ok = 0; @result = @_;
         goto &$sub;
     })->then($finally, $finally);
 }
@@ -216,7 +216,7 @@ sub finally {
 sub done    { &then; (); }
 sub catch   { splice(@_, 1, 0, undef); goto &then; }
 sub status  { $statuses{$_[0]{state}} }
-sub chain   { my $self= shift; $self= $self->then($_) for @_; return $self; }
+sub chain   { my $self = shift; $self = $self->then($_) for @_; return $self; }
 
 # predicates for all the status possibilities
 sub is_in_progress { $_[0]{state} == STATE_PROGRESS }

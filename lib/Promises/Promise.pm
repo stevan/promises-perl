@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 sub _new {
-    my ($class, $deferred)= @_;
+    my ($class, $deferred) = @_;
     return bless \$deferred, $class;
 }
 

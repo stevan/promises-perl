@@ -87,6 +87,7 @@ sub _invoke_cb {
     my $self = shift @$cb;
 
     if (my $invoke_callback = $cb->[$self->{state}]) {
+        local $@;
         eval {
             my @result = $invoke_callback->(@{$self->{result}});
             if (my $next = $cb->[0]) {

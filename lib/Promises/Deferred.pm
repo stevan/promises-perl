@@ -146,14 +146,16 @@ sub _handle_chain {
     my ($state, $result) = @$self{qw/state result/};
 
     my @todo = @{delete $self->{chained_promises}};
+    my @cbs;
     while (my $promise = shift @todo) {
         $promise->{state} = $state;
         $promise->{result} = $result;
-        _invoke_cbs(delete $promise->{cb});
         if (my $chain = delete $promise->{chained_promises}) {
             push @todo, @$chain;
         }
+        push @cbs, @{ delete $promise->{cb} };
     }
+    _invoke_cbs(\@cbs) if @cbs;
     return;
 }
 

@@ -133,6 +133,7 @@ sub _chain_promise {
         $target->{state} = $source->{state};
         $target->{result} = $source->{result};
         _invoke_cbs(delete $target->{cb});
+        $target->_handle_chain if $target->{chained_promises};
     } else {
         push @{$source->{chained_promises} ||= []}, $target;
     }

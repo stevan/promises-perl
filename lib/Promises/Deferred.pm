@@ -203,15 +203,15 @@ sub reject {
 
 sub finally {
     my ($self, $sub) = @_;
-    my ($ok, @result);
+    my (@result);
     my $finally = sub {
-        return ($ok ? Promises::resolved(@result) : Promises::rejected(@result));
+        return @result;
     };
     return $self->then(sub {
-        $ok = 1; @result = @_;
+        @result = @_;
         goto &$sub;
     }, sub {
-        $ok = 0; @result = @_;
+        @result = Promises::rejected(@_);
         goto &$sub;
     })->then($finally, $finally);
 }

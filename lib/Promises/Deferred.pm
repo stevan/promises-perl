@@ -163,6 +163,8 @@ sub _notify {
 
     my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
 
+    $self->{handled_reject} = 1 if $self->is_rejected && @$cbs;
+
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 
@@ -182,6 +184,14 @@ sub _callable_or_undef {
             ? $_
             : undef
     } @_;
+}
+
+sub DESTROY {
+    my ($self) = @_;
+    use Data::Dumper::Concise;
+    use Carp qw(cluck);
+    cluck( "not handled rejection: ". Dumper($self->result) )
+        if $self->is_rejected && $self->{handled_reject};
 }
 
 1;

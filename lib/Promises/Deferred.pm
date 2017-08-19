@@ -1,8 +1,6 @@
 package Promises::Deferred;
-BEGIN {
-  $Promises::Deferred::AUTHORITY = 'cpan:STEVAN';
-}
-$Promises::Deferred::VERSION = '0.94';
+our $AUTHORITY = 'cpan:STEVAN';
+$Promises::Deferred::VERSION = '0.95'; # TRIAL
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -19,11 +17,25 @@ use constant REJECTED    => 'rejected';
 
 sub new {
     my $class = shift;
+
+    my $caller = $Promises::WARN_ON_UNHANDLED_REJECT ? _trace() : undef ;
+
     bless {
+        _caller => $caller,
         resolved => [],
         rejected => [],
         status   => IN_PROGRESS
     } => $class;
+}
+
+sub _trace {
+    my $i = 0;
+
+    while( my( $package, $filename, $line ) = caller($i++) ) {
+        return [ $filename, $line ] unless $package =~ /^Promises/;
+    }
+
+    return
 }
 
 sub promise { Promises::Promise->new(shift) }
@@ -34,6 +46,7 @@ sub result  { (shift)->{'result'} }
 sub is_in_progress { (shift)->{'status'} eq IN_PROGRESS }
 sub is_resolved    { (shift)->{'status'} eq RESOLVED }
 sub is_rejected    { (shift)->{'status'} eq REJECTED }
+sub is_done        { ! $_[0]->is_in_progress }
 
 # the three possible states according to the spec ...
 sub is_unfulfilled { (shift)->is_in_progress }
@@ -73,6 +86,12 @@ sub then {
 
     $self->_notify unless $self->is_in_progress;
     $d->promise;
+}
+
+sub chain { 
+    my $self = shift;
+    $self = $self->then($_) for @_;
+    return $self;
 }
 
 sub catch {
@@ -133,7 +152,7 @@ sub _wrap {
             @results = do { $f->(@_) };
             1;
         }
-            || do { $error = $@ || 'Unknown reason' };
+            || do { $error = defined $@ ? $@ : 'Unknown reason' };
 
         if ($error) {
             $d->reject($error);
@@ -159,6 +178,8 @@ sub _notify {
 
     my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
 
+    $self->{_reject_was_handled} = $self->is_rejected && @$cbs;
+
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 
@@ -180,6 +201,7 @@ sub _callable_or_undef {
     } @_;
 }
 
+
 1;
 
 __END__
@@ -192,7 +214,7 @@ Promises::Deferred - An implementation of Promises in Perl
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -222,7 +244,7 @@ direction taken.
 
 =head1 CALLBACKS
 
-Wherever a callabck is mentioned below, it may take the form
+Wherever a callback is mentioned below, it may take the form
 of a coderef:
 
     sub {...}
@@ -288,6 +310,23 @@ the chain, and no C<$error> is specified, we will attempt to bubble the error
 to the next link in the chain. This allows error handling to be consolidated
 at the point in the chain where it makes the most sense.
 
+=item C<chain( @callbacks )>
+
+Utility method that takes a list of callbacks and turn them into a sequence
+of C<then>s. 
+
+    $promise->then( sub { ...code A... } )
+            ->then( sub { ...code B... } )
+            ->then( sub { ...code C... } );
+
+    # equivalent to
+
+    $promise->chain( 
+        sub { ...code A... } ),
+        sub { ...code B... } ),
+        sub { ...code C... } ),
+    );
+
 =item C<catch( $error )>
 
 This method registers a a single error callback.  It is the equivalent
@@ -352,6 +391,11 @@ returns true if the status is C<RESOLVED>.
 
 This is a predicate method against the status value, it
 returns true if the status is C<REJECTED>.
+
+=item C<is_done>
+
+This is a predicate method against the status value, it
+returns true if the status is either C<RESOLVED> or C<REJECTED>.
 
 =item C<is_unfulfilled>
 

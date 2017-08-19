@@ -5,7 +5,9 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More;
+use Test::More tests => 9;
+use Test::Requires 'AnyEvent';
+
 use AnyEvent;
 use AsyncUtil qw[ delay_me ];
 
@@ -52,4 +54,9 @@ $p0 = collect( deferred->reject('foo')->promise )->catch(
     }
 );
 
-done_testing;
+collect( deferred->resolve('foo')->promise, 'bar' )->then(
+    sub {
+        is_deeply \@_, [ [ 'foo' ], [ 'bar' ] ], 'collect with non-promises';
+    }
+);
+

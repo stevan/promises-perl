@@ -1,5 +1,5 @@
 package Promises::Cookbook::GentleIntro;
-$Promises::Cookbook::GentleIntro::VERSION = '0.94';
+
 # ABSTRACT: All you need to know about Promises
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::GentleIntro - All you need to know about Promises
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 All you need to know about Promises
 
@@ -61,7 +61,7 @@ instance:
 
     sub fetch_it {
         my ($uri) = @_;
-        my $deferred = deferred->new;
+        my $deferred = deferred;
         http_get $uri => sub {
             my ($body, $headers) = @_;
             $headers->{Status} == 200

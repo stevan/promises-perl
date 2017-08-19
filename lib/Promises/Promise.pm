@@ -1,8 +1,6 @@
 package Promises::Promise;
-BEGIN {
-  $Promises::Promise::AUTHORITY = 'cpan:STEVAN';
-}
-$Promises::Promise::VERSION = '0.94';
+our $AUTHORITY = 'cpan:STEVAN';
+$Promises::Promise::VERSION = '0.95'; # TRIAL
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -19,6 +17,7 @@ sub new {
 }
 
 sub then    { (shift)->{'deferred'}->then(@_) }
+sub chain   { (shift)->{'deferred'}->chain(@_) }
 sub catch   { (shift)->{'deferred'}->catch(@_) }
 sub done    { (shift)->{'deferred'}->done(@_) }
 sub finally { (shift)->{'deferred'}->finally(@_) }
@@ -28,6 +27,7 @@ sub result  { (shift)->{'deferred'}->result }
 sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
 sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled }
 sub is_failed      { (shift)->{'deferred'}->is_failed }
+sub is_done        { (shift)->{'deferred'}->is_done }
 
 sub is_in_progress { (shift)->{'deferred'}->is_in_progress }
 sub is_resolved    { (shift)->{'deferred'}->is_resolved }
@@ -45,7 +45,7 @@ Promises::Promise - An implementation of Promises in Perl
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 DESCRIPTION
 
@@ -59,7 +59,7 @@ Most of the documentation here points back to the
 documentation in the L<Promises::Deferred> module.
 
 Additionally L<Promises::Cookbook::GentleIntro> contains a long
-explanation of how this module, and all it's components
+explanation of how this module, and all its components
 are meant to work together.
 
 =head1 METHODS
@@ -75,6 +75,10 @@ object to proxy.
 =item C<then( $callback, $error )>
 
 This calls C<then> on the proxied L<Promises::Deferred> instance.
+
+=item C<chain( @thens )>
+
+This calls C<chain> on the proxied L<Promises::Deferred> instance.
 
 =item C<catch( $error )>
 
@@ -119,6 +123,10 @@ This calls C<is_resolved> on the proxied L<Promises::Deferred> instance.
 =item C<is_rejected>
 
 This calls C<is_rejected> on the proxied L<Promises::Deferred> instance.
+
+=item C<is_done>
+
+This calls C<is_done> on the proxied L<Promises::Deferred> instance.
 
 =back
 

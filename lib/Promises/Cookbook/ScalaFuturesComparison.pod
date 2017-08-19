@@ -1,5 +1,5 @@
 package Promises::Cookbook::ScalaFuturesComparison;
-$Promises::Cookbook::ScalaFuturesComparison::VERSION = '0.94';
+
 # ABSTRACT: A comparison of Scala Futures with Promises
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::ScalaFuturesComparison - A comparison of Scala Futures with 
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 DESCRIPTION
 

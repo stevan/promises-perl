@@ -1,5 +1,5 @@
 package Promises::Cookbook::Recursion;
-$Promises::Cookbook::Recursion::VERSION = '0.94';
+
 # ABSTRACT: Examples of recursive asynchronous operations
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::Recursion - Examples of recursive asynchronous operations
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 

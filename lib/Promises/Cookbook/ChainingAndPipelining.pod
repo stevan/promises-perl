@@ -1,5 +1,5 @@
 package Promises::Cookbook::ChainingAndPipelining;
-$Promises::Cookbook::ChainingAndPipelining::VERSION = '0.94';
+
 # ABSTRACT: Examples of chaining/pipelining of asynchronous operations
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::ChainingAndPipelining - Examples of chaining/pipelining of a
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 

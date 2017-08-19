@@ -28,18 +28,19 @@ use Mojo::IOLoop;
 
 my $ua    = Mojo::UserAgent::Promises->new;
 my $delay = Mojo::IOLoop->delay;
+my @titles;
 
-foreach my $url (qw[ mojolicio.us www.cpan.org ]) {
-    $delay->begin;
+foreach my $url (qw[ mojolicious.org www.cpan.org ]) {
+    my $end = $delay->begin;
     $ua->get($url)->then(
         sub {
             my ($ua, $tx) = @_;
-            $delay->end( $tx->res->dom->at('title')->text );
+            push @titles, $tx->res->dom->at('title')->text;
+            $end->();
         }
     );
 }
-
-my @titles = $delay->wait;
+$delay->wait;
 
 print join "\n" => @titles;
 print "\n";

@@ -1,5 +1,5 @@
 package Promises::Cookbook::SynopsisBreakdown;
-$Promises::Cookbook::SynopsisBreakdown::VERSION = '0.94';
+
 # ABSTRACT: A breakdown of the SYNOPSIS section of Promises
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::SynopsisBreakdown - A breakdown of the SYNOPSIS section of P
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 

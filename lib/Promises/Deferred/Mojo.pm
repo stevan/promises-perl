@@ -1,9 +1,7 @@
 package Promises::Deferred::Mojo;
-BEGIN {
-  $Promises::Deferred::Mojo::AUTHORITY = 'cpan:STEVAN';
-}
+our $AUTHORITY = 'cpan:STEVAN';
 # ABSTRACT: An implementation of Promises in Perl
-$Promises::Deferred::Mojo::VERSION = '0.94';
+$Promises::Deferred::Mojo::VERSION = '0.95'; # TRIAL
 use strict;
 use warnings;
 
@@ -32,7 +30,7 @@ Promises::Deferred::Mojo - An implementation of Promises in Perl
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -62,8 +60,6 @@ the application:
 
 B<Note:> If you are using Mojolicious with the L<EV> event loop, then you
 should use the L<Promises::Deferred::EV> backend instead.
-
-=back
 
 =head1 AUTHOR
 

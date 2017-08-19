@@ -1,5 +1,5 @@
 package Promises::Cookbook::TIMTOWTDI;
-$Promises::Cookbook::TIMTOWTDI::VERSION = '0.94';
+
 # ABSTRACT: Counter examples to Promises
 
 __END__
@@ -12,7 +12,7 @@ Promises::Cookbook::TIMTOWTDI - Counter examples to Promises
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 DESCRIPTION
 
@@ -137,7 +137,37 @@ please let me know.
 
 =head1 Mojo::UserAgent
 
-... TODO
+    #!/usr/bin/env perl
+
+    use Mojo::Base -strict;
+    use Mojo::UserAgent;
+
+    my $titles;
+
+    my $ua = Mojo::UserAgent->new;
+    Mojo::IOLoop->delay(
+        sub {
+            my $delay = shift;
+            $ua->get('http://google.com/', $delay->begin);
+            $ua->get('http://yahoo.com/', $delay->begin);
+            $ua->get('http://perlmonks.org/', $delay->begin);
+        },
+        sub {
+            my ($delay, $tx1, $tx2, $tx3) = @_;
+            $titles = {
+                google      => $tx1->res->dom->at('title')->text,
+                yahoo       => $tx2->res->dom->at('title')->text,
+                perlmonks   => $tx3->res->dom->at('title')->text,
+            };
+        },
+    )->catch(
+        sub {
+            my ($delay, $err) = @_;
+            warn "failed to download or parse title\n";
+        }
+    )->wait;
+
+    say Mojo::Util::dumper($titles);
 
 =head1 AUTHOR
 

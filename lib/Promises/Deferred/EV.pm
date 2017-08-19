@@ -1,9 +1,7 @@
 package Promises::Deferred::EV;
-BEGIN {
-  $Promises::Deferred::EV::AUTHORITY = 'cpan:STEVAN';
-}
+our $AUTHORITY = 'cpan:STEVAN';
 # ABSTRACT: An implementation of Promises in Perl
-$Promises::Deferred::EV::VERSION = '0.94';
+$Promises::Deferred::EV::VERSION = '0.95'; # TRIAL
 use strict;
 use warnings;
 
@@ -34,7 +32,7 @@ Promises::Deferred::EV - An implementation of Promises in Perl
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -61,8 +59,6 @@ the application:
 
     use Promises -backend => ['EV'];
     use MyClass;
-
-=back
 
 =head1 AUTHOR
 

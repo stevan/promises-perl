@@ -3,14 +3,16 @@ abstract: 'An implementation of Promises in Perl'
 author:
   - 'Stevan Little <stevan.little@iinteractive.com>'
 build_requires:
-  AnyEvent: '0'
   Test::Fatal: '0'
   Test::More: '0.89'
+  Test::Pod: '0'
+  Test::Requires: '0'
+  Test::Warn: '0'
   lib: '0'
 configure_requires:
   ExtUtils::MakeMaker: '0'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.020, CPAN::Meta::Converter version 2.142060'
+generated_by: 'Dist::Zilla version 6.009, CPAN::Meta::Converter version 2.150001'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -18,6 +20,7 @@ meta-spec:
 name: Promises
 requires:
   Carp: '0'
+  Data::Dumper: '0'
   Module::Runtime: '0'
   Scalar::Util: '0'
   Sub::Exporter: '0'
@@ -27,5 +30,6 @@ requires:
   warnings: '0'
 resources:
   repository: https://github.com/stevan/promises-perl.git
-version: '0.94'
+version: '0.95'
 x_authority: cpan:STEVAN
+x_serialization_backend: 'YAML::Tiny version 1.67'

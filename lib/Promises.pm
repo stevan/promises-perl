@@ -1,8 +1,6 @@
 package Promises;
-BEGIN {
-  $Promises::AUTHORITY = 'cpan:STEVAN';
-}
-$Promises::VERSION = '0.94';
+our $AUTHORITY = 'cpan:STEVAN';
+$Promises::VERSION = '0.95'; # TRIAL
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -11,10 +9,45 @@ use warnings;
 use Promises::Deferred;
 our $Backend = 'Promises::Deferred';
 
+our $WARN_ON_UNHANDLED_REJECT = 0;
+
 use Sub::Exporter -setup => {
-    collectors => [ 'backend' => \'_set_backend' ],
-    exports    => [qw[ deferred collect ]]
+    collectors => [ 
+        'backend' => \'_set_backend',
+        'warn_on_unhandled_reject' => \'_set_warn_on_unhandled_reject',
+    ],
+    exports    => [qw[ deferred collect resolved rejected ]]
 };
+
+sub _set_warn_on_unhandled_reject {
+    my( $class, $arg ) = @_;
+
+    if( $WARN_ON_UNHANDLED_REJECT = $arg->[0] ) {
+        # only brings the big guns if asked for
+
+        *Promises::Deferred::DESTROY = sub {
+    
+            return unless $WARN_ON_UNHANDLED_REJECT;
+
+            my $self = shift;
+
+            return unless
+                $self->is_rejected and not $self->{_reject_was_handled};
+
+            require Data::Dumper;
+
+            my $dump =
+                Data::Dumper->new([$self->result])->Terse(1)->Dump;
+
+            chomp $dump;
+            $dump =~ s/\n/ /g;
+
+            warn "Promise's rejection ", $dump,
+                " was not handled",
+                ( ' at ', join ' line ', @{$self->{_caller}} ) x !! $self->{_caller}, "\n";
+        };
+    }
+}
 
 sub _set_backend {
     my ( $class, $arg ) = @_;
@@ -29,7 +62,21 @@ sub _set_backend {
 
 }
 
-sub deferred { $Backend->new; }
+sub deferred(;&) { 
+    my $promise = $Backend->new;
+
+    if ( my $code = shift ) {
+        $promise->resolve;
+        return $promise->then(sub{
+            $code->($promise);
+        });
+    }
+
+    return $promise;
+}
+
+sub resolved { deferred->resolve(@_) }
+sub rejected { deferred->reject(@_)  }
 
 sub collect {
     my @promises = @_;
@@ -39,6 +86,16 @@ sub collect {
     my $remaining = scalar @promises;
     foreach my $i ( 0 .. $#promises ) {
         my $p = $promises[$i];
+
+        unless ( 
+            grep { ref $p eq $_ }
+                 qw/ Promises::Promise Promises::Deferred / 
+        ) {
+            $results->[$i] = [ $p ];
+            $remaining--;
+            next;
+        }
+
         $p->then(
             sub {
                 $results->[$i] = [@_];
@@ -71,7 +128,7 @@ Promises - An implementation of Promises in Perl
 
 =head1 VERSION
 
-version 0.94
+version 0.95
 
 =head1 SYNOPSIS
 
@@ -276,6 +333,42 @@ using Promises with L<Mojo::UserAgent>.
 This just creates an instance of the L<Promises::Deferred> class
 it is purely for convenience.
 
+Can take a coderef, which will be dealt with as a C<then> argument.
+
+    my $promise = deferred sub {
+        ... do stuff ...
+
+        return $something;
+    };
+
+    # equivalent to
+
+    my $dummy = deferred;
+
+    my $promise = $dummy->then(sub {
+        ... do stuff ...
+
+        return $something;
+    });
+
+    $dummy->resolve;
+
+=item C<resolved( @values )>
+
+Creates an instance of L<Promises::Deferred> resolved with 
+the provided C<@values>. Purely a shortcut for
+
+    my $promise = deferred;
+    $promise->resolve(@values);
+
+=item C<rejected( @values )>
+
+Creates an instance of L<Promises::Deferred> rejected with 
+the provided C<@values>. Purely a shortcut for
+
+    my $promise = deferred;
+    $promise->reject(@values);
+
 =item C<collect( @promises )>
 
 The only export for this module is the C<collect> function, which
@@ -286,6 +379,22 @@ or as a success). The eventual result of the returned promise
 object will be an array of all the results (or errors) of each
 of the C<@promises> in the order in which they where passed
 to C<collect> originally.
+
+If C<collect> is passed a value that is not a promise, it'll be wrapped
+in an arrayref and passed through. 
+
+    my $p1 = deferred;
+    my $p2 = deferred;
+    $p1->resolve(1);
+    $p2->resolve(2);
+
+    collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', map { @$_ } @_; # => "1 not a promise 2"
+    })
 
 =back
 

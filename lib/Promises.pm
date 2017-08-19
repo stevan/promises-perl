@@ -8,10 +8,45 @@ use warnings;
 use Promises::Deferred;
 our $Backend = 'Promises::Deferred';
 
+our $WARN_ON_UNHANDLED_REJECT = 0;
+
 use Sub::Exporter -setup => {
-    collectors => [ 'backend' => \'_set_backend' ],
+    collectors => [ 
+        'backend' => \'_set_backend',
+        'warn_on_unhandled_reject' => \'_set_warn_on_unhandled_reject',
+    ],
     exports    => [qw[ deferred collect resolved rejected ]]
 };
+
+sub _set_warn_on_unhandled_reject {
+    my( $class, $arg ) = @_;
+
+    if( $WARN_ON_UNHANDLED_REJECT = $arg->[0] ) {
+        # only brings the big guns if asked for
+
+        *Promises::Deferred::DESTROY = sub {
+    
+            return unless $WARN_ON_UNHANDLED_REJECT;
+
+            my $self = shift;
+
+            return unless
+                $self->is_rejected and not $self->{_reject_was_handled};
+
+            require Data::Dumper;
+
+            my $dump =
+                Data::Dumper->new([$self->result])->Terse(1)->Dump;
+
+            chomp $dump;
+            $dump =~ s/\n/ /g;
+
+            warn "Promise's rejection ", $dump,
+                " was not handled",
+                ( ' at ', join ' line ', @{$self->{_caller}} ) x !! $self->{_caller}, "\n";
+        };
+    }
+}
 
 sub _set_backend {
     my ( $class, $arg ) = @_;

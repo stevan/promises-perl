@@ -16,11 +16,25 @@ use constant REJECTED    => 'rejected';
 
 sub new {
     my $class = shift;
+
+    my $caller = $Promises::WARN_ON_UNHANDLED_REJECT ? _trace() : undef ;
+
     bless {
+        _caller => $caller,
         resolved => [],
         rejected => [],
         status   => IN_PROGRESS
     } => $class;
+}
+
+sub _trace {
+    my $i = 0;
+
+    while( my( $package, $filename, $line ) = caller($i++) ) {
+        return [ $filename, $line ] unless $package =~ /^Promises/;
+    }
+
+    return
 }
 
 sub promise { Promises::Promise->new(shift) }
@@ -163,6 +177,8 @@ sub _notify {
 
     my $cbs = $self->is_resolved ? $self->{resolved} : $self->{rejected};
 
+    $self->{_reject_was_handled} = $self->is_rejected && @$cbs;
+
     $self->{'resolved'} = [];
     $self->{'rejected'} = [];
 
@@ -183,6 +199,7 @@ sub _callable_or_undef {
             : undef
     } @_;
 }
+
 
 1;
 

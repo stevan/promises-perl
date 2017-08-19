@@ -1,6 +1,6 @@
 Revision history for Perl extension Promises
 
-{NEXT}
+0.95_TRIAL 2017-08-19
 
   [ENHANCEMENTS]
   - add support for IO::Async. (GH#62)

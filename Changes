@@ -3,6 +3,10 @@ Revision history for Perl extension Promises
 {NEXT}
   - doc fix from Amelia Ireland (RT#107559)
 
+  [BUG FIXES]
+  - fix case where exception exists but is false. (GH#48, stuckdownawell)
+
+
 0.94 Monday, December 29, 2014
   - fixing the other side of the AutoPrereqs 
     issue, which is actually making sure that

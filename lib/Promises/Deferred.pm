@@ -137,7 +137,7 @@ sub _wrap {
             @results = do { $f->(@_) };
             1;
         }
-            || do { $error = $@ || 'Unknown reason' };
+            || do { $error = defined $@ ? $@ : 'Unknown reason' };
 
         if ($error) {
             $d->reject($error);

@@ -2,7 +2,17 @@ package Promises::Cookbook::Recursion;
 
 # ABSTRACT: Examples of recursive asynchronous operations
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Promises::Cookbook::Recursion - Examples of recursive asynchronous operations
+
+=head1 VERSION
+
+version 0.96
 
 =head1 SYNOPSIS
 
@@ -148,6 +158,15 @@ wait around for the return result but instead return immediately,
 exiting the current execution, discarding the return results and
 rolling back the stack.
 
-=cut
+=head1 AUTHOR
 
-__END__
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

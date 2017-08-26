@@ -1,6 +1,5 @@
 package Promises;
-our $AUTHORITY = 'cpan:STEVAN';
-$Promises::VERSION = '0.96';
+
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -16,7 +15,12 @@ use Sub::Exporter -setup => {
         'backend' => \'_set_backend',
         'warn_on_unhandled_reject' => \'_set_warn_on_unhandled_reject',
     ],
+<<<<<<< HEAD
+    exports    => [qw[ deferred collect resolved rejected collect_props 
+        flat_collect ]]
+=======
     exports    => [qw[ deferred collect resolved rejected ]]
+>>>>>>> master
 };
 
 sub _set_warn_on_unhandled_reject {
@@ -67,9 +71,13 @@ sub deferred(;&) {
 
     if ( my $code = shift ) {
         $promise->resolve;
+<<<<<<< HEAD
+        return $promise->then(sub{ $code->() });
+=======
         return $promise->then(sub{
             $code->($promise);
         });
+>>>>>>> master
     }
 
     return $promise;
@@ -77,6 +85,11 @@ sub deferred(;&) {
 
 sub resolved { deferred->resolve(@_) }
 sub rejected { deferred->reject(@_)  }
+<<<<<<< HEAD
+
+sub flat_collect { collect(@_)->then( sub { map { @$_ } @_ }) }
+=======
+>>>>>>> master
 
 sub collect {
     my @promises = @_;
@@ -116,19 +129,39 @@ sub collect {
     $all_done->promise;
 }
 
+sub collect_props {
+    my %promises = @_;
+
+    my $all_done  = deferred();
+
+    my $results   = {};
+    my $remaining = scalar keys %promises;
+
+    my $are_we_there_yet = sub {
+        return if --$remaining;
+
+        return if $all_done->is_rejected;
+
+        $all_done->resolve($results);
+    };
+
+    while( my( $key, $promise ) = each %promises ) {
+        unless( ref $promise eq 'Promises::Promise' or ref $promise eq 'Promises::Deferred' ) {
+            my $p = deferred();
+            $p->resolve($promise);
+            $promise = $p;
+        }
+
+        $promise->then(sub{ $results->{$key} = shift })
+            ->then( $are_we_there_yet, sub { $all_done->reject(@_) } );
+    }
+
+    return $all_done->promise;
+}
+
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Promises - An implementation of Promises in Perl
-
-=head1 VERSION
-
-version 0.96
 
 =head1 SYNOPSIS
 
@@ -396,6 +429,100 @@ in an arrayref and passed through.
         print join ' ', map { @$_ } @_; # => "1 not a promise 2"
     })
 
+<<<<<<< HEAD
+=item C<flat_collect( @promises )>
+
+Like C<collect>, but flatten its returned arrayref into a single
+list. 
+
+In other words, the previous example
+
+    collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', map { @$_ } @_; # => "1 not a promise 2"
+    })
+
+can be rewritten as
+
+    flat_collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' ', @_; # => "1 not a promise 2"
+    })
+
+
+=item C<collect_props( key1 => $promise1, key2 => $promise2, ... )>
+
+Like C<collect()>, but will yield a hashref composed of the given keys 
+and promises's results. Values can also be regular variables, in which
+case they'll be simply passed through.
+
+For example,
+
+  my $id = 12345;
+
+  collect(
+      fetch_it("http://rest.api.example.com/-/product/$id"),
+      fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my ($product, $suggestions, $reviews) = @_;
+          $cv->send({
+              product     => $product,
+              suggestions => $suggestions,
+              reviews     => $reviews,
+              id          => $id
+          })
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+could be rewritten as
+
+  my $id = 12345;
+
+  collect(
+      id          => $id,
+      product     => fetch_it("http://rest.api.example.com/-/product/$id"),
+      suggestions => fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+      reviews     => fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+  )->then(
+      sub {
+          my $results = shift;
+          $cv->send($results);
+      },
+      sub { $cv->croak( 'ERROR' ) }
+  );
+
+=item C<warn_on_unhandled_reject => [ $boolean ]
+
+By default promises that are rejected but aren't subsequently C<catch>ed
+are silent failures. This is by design, but sometimes during development you
+might want to get warn of those instances. If so, you can  use the
+C<warn_on_unhandled_reject> directive which, if given a true value,
+will have rejected and uncaught promises warn when they get destroyed (which is
+likely to be at the end of the program).
+
+    use Promises warn_on_unhandled_reject => [ 1 ], 'deferred';
+
+    my $p = deferred();
+
+    $p->then(sub { die "ooops\n" })
+      ->then( sub { "something else" } );
+
+    $p->resolve;
+
+    # will trigger warning 
+    # "Promise's rejection [ 'ooops' ] was not handled at my/script.pl line 123"
+
+=======
+>>>>>>> master
 =back
 
 =head1 SEE ALSO
@@ -416,15 +543,9 @@ in an arrayref and passed through.
 
 =back
 
-=head1 AUTHOR
 
-Stevan Little <stevan.little@iinteractive.com>
 
-=head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by Infinity Interactive, Inc..
 
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
 
-=cut
+

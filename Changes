@@ -1,5 +1,8 @@
 Revision history for Perl extension Promises
 
+0.96 2017-08-26
+    - Promotion of trial release to the real deal.
+
 0.95_TRIAL 2017-08-19
 
   [ENHANCEMENTS]

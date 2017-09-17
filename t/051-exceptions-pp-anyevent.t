@@ -8,13 +8,9 @@ use NoEV;
 use Test::More;
 use Test::Fatal;
 
-BEGIN {
-    if (!eval { require AnyEvent; AnyEvent->import; 1 }) {
-        plan skip_all => "AnyEvent is required for this test";
-    }
-    use_ok 'Promises::Deferred::AnyEvent';
-    use Promises 'deferred', backend => ['AnyEvent'];
-}
+use Test::Requires 'AnyEvent';
+
+use Promises 'deferred', backend => ['AnyEvent'];
 
 my @out;
 

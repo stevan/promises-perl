@@ -8,12 +8,9 @@ use NoEV;
 use Test::More;
 use Test::Fatal;
 
-BEGIN {
-    if (!eval { require Mojo::IOLoop; Mojo::IOLoop->import; 1 }) {
-        plan skip_all => "Mojo::IOLoop is required for this test";
-    }
-    use_ok 'Promises::Deferred::Mojo';
-}
+use Test::Requires 'Mojo::IOLoop';
+
+use Promises qw/deferred/, backend => ["Mojo"];
 
 my @out;
 
@@ -66,7 +63,7 @@ is $out[4], "5: OK\n", "Reject then die";
 #===================================
 sub a_promise {
 #===================================
-    my $d = Promises::Deferred::Mojo->new;
+    my $d = deferred;
     Mojo::IOLoop->timer( 0, sub { $d->resolve('OK') } );
     $d->promise;
 }

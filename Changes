@@ -5,6 +5,9 @@ Revision history for Perl extension Promises
   [ENHANCEMENTS]
   - add new function 'collect_hash'. (GH#52, yanick)
 
+  [MISC]
+  - make tests use proper api. (TdvW)
+
 0.96 2017-08-26
     - Promotion of trial release to the real deal.
 

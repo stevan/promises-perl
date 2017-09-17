@@ -7,12 +7,9 @@ use lib 't/lib';
 use Test::More;
 use Test::Fatal;
 
-BEGIN {
-    if (!eval { require EV; EV->import; require AnyEvent; AnyEvent->import; 1 }) {
-        plan skip_all => "AnyEvent/EV is required for this test";
-    }
-    use_ok 'Promises::Deferred::EV';
-}
+use Test::Requires 'EV';
+
+use Promises 'deferred', backend => ['EV'];
 
 my @out;
 
@@ -66,7 +63,7 @@ is $out[4], "5: OK\n", "Reject then die";
 #===================================
 sub a_promise {
 #===================================
-    my $d = Promises::Deferred::EV->new;
+    my $d = deferred;
     my $w;
     $w = AnyEvent->timer(
         after => 0,

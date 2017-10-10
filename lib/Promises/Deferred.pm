@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Scalar::Util qw[ blessed reftype ];
-use Carp qw[ confess ];
+use Carp qw[ confess carp ];
 
 use Promises::Promise;
 
@@ -136,6 +136,32 @@ sub finally {
     }
     $d->promise;
 
+}
+
+sub timeout {
+    my ( $self, $timeout ) = @_;
+
+    unless( $self->can('_timeout') ) {
+        carp "timeout mechanism not implemented for Promise backend ", ref $self;
+        return $self->promise;
+    }
+
+    my $deferred = ref($self)->new;
+
+    my $cancel = $deferred->_timeout($timeout, sub {
+        return if $deferred->is_done;
+        $deferred->reject( 'timeout' );
+    } );
+
+    $self->finally( $cancel )->then(
+        sub { 'resolve', @_ },
+        sub { 'reject',  @_ },
+    )->then(sub {
+        my( $action, @args ) = @_;
+        $deferred->$action(@args) unless $deferred->is_done;
+    });
+
+    return $deferred->promise;
 }
 
 sub _wrap {

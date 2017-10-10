@@ -82,6 +82,10 @@ This calls C<done> on the proxied L<Promises::Deferred> instance.
 
 This calls C<finally> on the proxied L<Promises::Deferred> instance.
 
+=item C<timeout( $seconds )>
+
+This calls C<timeout> on the proxied L<Promises::Deferred> instance.
+
 =item C<status>
 
 This calls C<status> on the proxied L<Promises::Deferred> instance.

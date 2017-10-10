@@ -378,6 +378,17 @@ returns a L<Promises::Promise> and so can be chained. The return value is
 discarded and the success or failure of the C<finally> callback will have no
 effect on promises further down the chain.
 
+=item C<timeout( $seconds )>
+
+For asynchronous backend, returns a new promise that either takes on
+the result of the current promise or is rejected after the given delay,
+whichever comes first.
+
+The default synchronous backend does not implement a timer function. The method, in
+that case, returns a chained promise that carries over the resolution of the
+current promise and emits a warning.
+
+
 =item C<resolve( @args )>
 
 This is the method to call upon the successful completion of your asynchronous

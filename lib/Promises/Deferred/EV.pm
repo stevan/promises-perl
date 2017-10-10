@@ -19,6 +19,14 @@ sub _notify_backend {
     });
 }
 
+sub _timeout {
+    my ( $self, $timeout, $callback ) = @_;
+
+    my $id = EV::timer $timeout, 0, $callback;
+    
+    return sub { undef $id };
+}
+
 1;
 
 __END__

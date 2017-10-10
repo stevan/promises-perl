@@ -22,6 +22,7 @@ sub done    { (shift)->{'deferred'}->done(@_) }
 sub finally { (shift)->{'deferred'}->finally(@_) }
 sub status  { (shift)->{'deferred'}->status }
 sub result  { (shift)->{'deferred'}->result }
+sub timeout  { (shift)->{'deferred'}->timeout }
 
 sub is_unfulfilled { (shift)->{'deferred'}->is_unfulfilled }
 sub is_fulfilled   { (shift)->{'deferred'}->is_fulfilled }

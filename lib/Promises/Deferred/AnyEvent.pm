@@ -17,6 +17,14 @@ sub _notify_backend {
     };
 }
 
+sub _timeout {
+    my ( $self, $timeout, $callback ) = @_;
+
+    my $id = AnyEvent->timer( after => $timeout,  cb => $callback );
+    
+    return sub { undef $id };
+}
+
 1;
 
 __END__

@@ -18,11 +18,12 @@ subtest $_, \&test_me, $_ for qw/
 /;
 
 sub test_me {
-    plan tests => 6;
-
     my $backend = shift;
 
-    $backend = Promises::Test::backend( $backend );
+    $backend = Promises::Test::backend( $backend )
+        or plan skip_all => $@ =~ /^(.*)/;
+
+    plan tests => 6;
 
     my $p1 = deferred();
     my $p2 = $p1->timeout(1);

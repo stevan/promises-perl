@@ -15,7 +15,9 @@ sub backend {
 
     alarm( shift || 10 );
 
-    Promises->_set_backend([$backend]);
+    my $x = eval {
+        Promises->_set_backend([$backend])
+    } or return;
 
     return use_module( 'Promises::Test::' . $backend )->new;
 }

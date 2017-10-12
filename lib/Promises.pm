@@ -283,6 +283,8 @@ See:
 
 =item * L<Promises::Deferred::Mojo>
 
+=item * L<Promises::Deferred::IO::Async>
+
 =back
 
 =head2 Relation to Promises/Futures in Scala

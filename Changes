@@ -9,6 +9,10 @@ Revision history for Perl extension Promises
   - make tests use proper api. (TdvW)
   - have test load AnyEvent. (GH#72, Luke Triantafyllidis)
 
+  [DOCUMENTATION]
+  - Add a reference to the IO::Async deferred backend. (GH#71, Luke
+    Triantafyllidis)
+
 0.96 2017-08-26
     - Promotion of trial release to the real deal.
 

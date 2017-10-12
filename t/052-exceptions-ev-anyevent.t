@@ -8,6 +8,7 @@ use Test::More;
 use Test::Fatal;
 
 use Test::Requires 'EV';
+use Test::Requires 'AnyEvent';
 
 use Promises 'deferred', backend => ['EV'];
 

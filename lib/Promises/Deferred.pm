@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Scalar::Util qw[ blessed reftype ];
-use Carp qw[ confess ];
+use Carp qw[ confess carp ];
 
 use Promises::Promise;
 
@@ -136,6 +136,32 @@ sub finally {
     }
     $d->promise;
 
+}
+
+sub timeout {
+    my ( $self, $timeout ) = @_;
+
+    unless( $self->can('_timeout') ) {
+        carp "timeout mechanism not implemented for Promise backend ", ref $self;
+        return $self->promise;
+    }
+
+    my $deferred = ref($self)->new;
+
+    my $cancel = $deferred->_timeout($timeout, sub {
+        return if $deferred->is_done;
+        $deferred->reject( 'timeout' );
+    } );
+
+    $self->finally( $cancel )->then(
+        sub { 'resolve', @_ },
+        sub { 'reject',  @_ },
+    )->then(sub {
+        my( $action, @args ) = @_;
+        $deferred->$action(@args) unless $deferred->is_done;
+    });
+
+    return $deferred->promise;
 }
 
 sub _wrap {
@@ -351,6 +377,17 @@ Typically it is used to clean up resources, like closing open files etc. It
 returns a L<Promises::Promise> and so can be chained. The return value is
 discarded and the success or failure of the C<finally> callback will have no
 effect on promises further down the chain.
+
+=item C<timeout( $seconds )>
+
+For asynchronous backend, returns a new promise that either takes on
+the result of the current promise or is rejected after the given delay,
+whichever comes first.
+
+The default synchronous backend does not implement a timer function. The method, in
+that case, returns a chained promise that carries over the resolution of the
+current promise and emits a warning.
+
 
 =item C<resolve( @args )>
 

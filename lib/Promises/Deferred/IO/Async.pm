@@ -20,6 +20,19 @@ sub _notify_backend {
     );
 }
 
+sub _timeout {
+    my ( $self, $timeout, $callback ) = @_;
+
+    my $timer = IO::Async::Timer::Countdown->new(
+        delay => $timeout,
+        on_expire => $callback,
+    );
+    
+    $Loop->add( $timer->start );
+
+    return sub { $timer->stop };
+}
+
 1;
 
 __END__

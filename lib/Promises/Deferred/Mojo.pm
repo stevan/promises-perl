@@ -17,6 +17,14 @@ sub _notify_backend {
     });
 }
 
+sub _timeout {
+    my ( $self, $timeout, $callback ) = @_;
+
+    my $id = Mojo::IOLoop->timer( $timeout => $callback );
+    
+    return sub { Mojo::IOLoop->remove($id) };
+}
+
 1;
 
 __END__

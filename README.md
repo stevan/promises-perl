@@ -68,6 +68,7 @@ order to support some specific features.
     AnyEvent
     Mojo::IOLoop
     EV
+    IO::Async
 
 ## SEE ALSO
 

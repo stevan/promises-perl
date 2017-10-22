@@ -1,6 +1,6 @@
 Revision history for Perl extension Promises
 
-{NEXT}
+{{$NEXT}}
 
   [ENHANCEMENTS]
   - add new function 'collect_hash'. (GH#52, yanick)

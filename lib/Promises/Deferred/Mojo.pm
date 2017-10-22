@@ -1,6 +1,7 @@
 package Promises::Deferred::Mojo;
+our $AUTHORITY = 'cpan:YANICK';
 # ABSTRACT: An implementation of Promises in Perl
-
+$Promises::Deferred::Mojo::VERSION = '0.97';
 use strict;
 use warnings;
 
@@ -28,6 +29,16 @@ sub _timeout {
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Promises::Deferred::Mojo - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 0.97
 
 =head1 SYNOPSIS
 
@@ -58,5 +69,15 @@ the application:
 B<Note:> If you are using Mojolicious with the L<EV> event loop, then you
 should use the L<Promises::Deferred::EV> backend instead.
 
-=cut
+=head1 AUTHOR
 
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2017, 2014, 2012 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

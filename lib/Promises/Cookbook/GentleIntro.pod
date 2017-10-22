@@ -2,7 +2,17 @@ package Promises::Cookbook::GentleIntro;
 
 # ABSTRACT: All you need to know about Promises
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Promises::Cookbook::GentleIntro - All you need to know about Promises
+
+=head1 VERSION
+
+version 0.98
 
 =head1 All you need to know about Promises
 
@@ -61,7 +71,6 @@ instance:
         $deferred->promise;
     }
 
-
 The above code makes an asynchronous C<http_get> request to the specified
 C<$uri>. The result of the request at the time the subroutine returns is like
 Schrödinger's cat: both dead and alive.  In the future it may succeed or it
@@ -87,7 +96,6 @@ That's all there is to know about L<Promises::Deferred>.
 Promises are a lot like C<try>/C<catch>/C<finally> blocks except that they can
 be chained together. The most important part of a promise is the C<then()>
 method:
-
 
     $promise->then(
         sub { success! },
@@ -483,7 +491,6 @@ you are using at the start of your application:
 You only need to specify the backend once - any code in the application
 which uses L<Promises> will automatically use the specified backend.
 
-
 =head2 Recursing safely with with C<done()>
 
 One of the cool things about working with promises is that the return value
@@ -575,7 +582,6 @@ The code can be rewritten using C<done()> instead of C<then()> and an event
 loop specific backend, and it will happily process millions of lines without
 memory leaks or stack oveflows:
 
-
     use Promises backend => ['EV'], 'deferred';
 
     sub process_file {
@@ -606,24 +612,15 @@ memory leaks or stack oveflows:
         return $deferred->promise
     }
 
+=head1 AUTHOR
+
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2017, 2014, 2012 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
 =cut
-
-
-__END__
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

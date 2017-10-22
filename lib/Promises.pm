@@ -23,7 +23,7 @@ use Sub::Exporter -setup => {
 };
 
 sub _set_warn_on_unhandled_reject {
-    my( $class, $arg ) = @_;
+    my( undef, $arg ) = @_;
 
     if( $WARN_ON_UNHANDLED_REJECT = $arg->[0] ) {
         # only brings the big guns if asked for
@@ -53,7 +53,7 @@ sub _set_warn_on_unhandled_reject {
 }
 
 sub _set_backend {
-    my ( $class, $arg ) = @_;
+    my ( undef, $arg ) = @_;
     my $backend = $arg->[0] or return;
 
     unless ( $backend =~ s/^\+// ) {

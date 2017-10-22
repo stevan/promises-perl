@@ -1,7 +1,10 @@
 requires "AE" => "0";
 requires "AnyEvent" => "0";
 requires "Carp" => "0";
+requires "Data::Dumper" => "0";
 requires "EV" => "0";
+requires "IO::Async::Loop" => "0";
+requires "IO::Async::Timer::Countdown" => "0";
 requires "Module::Runtime" => "0";
 requires "Mojo::IOLoop" => "0";
 requires "Scalar::Util" => "0";
@@ -20,6 +23,7 @@ on 'test' => sub {
   requires "Test::More" => "0.89";
   requires "Test::Pod" => "0";
   requires "Test::Requires" => "0";
+  requires "Test::Warn" => "0";
   requires "lib" => "0";
   requires "perl" => "5.006";
 };

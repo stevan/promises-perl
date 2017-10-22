@@ -4,6 +4,7 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
+  - removed hard-dependency on the different backends.
 
   [ DOCUMENTATION ]
 

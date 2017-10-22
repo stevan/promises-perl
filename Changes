@@ -4,7 +4,6 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
-  - removed hard-dependency on the different backends.
 
   [ DOCUMENTATION ]
 
@@ -13,6 +12,13 @@ Revision history for Perl extension Promises
   [ NEW FEATURES ]
 
   [ STATISTICS ]
+
+0.98 2017-10-22
+  [ BUG FIXES ]
+    - removed hard-dependency on the different backends.
+
+  [ STATISTICS ]
+    - code churn: 3 files changed, 120 insertions(+), 161 deletions(-)
 
 0.97 2017-10-22
   [ DOCUMENTATION ]
@@ -57,9 +63,9 @@ Revision history for Perl extension Promises
   - BACKWARDS COMPATIBILITY WARNING   !!
   - !!
   - This is the first step towards full !!
-  - compatibility with the Promises/A+	    !!
+  - compatibility with the Promises/A+		    !!
   - spec, at which we will declare this !!
-  - to be module to be 1.0	    !!
+  - to be module to be 1.0  !!
   - NOTE: Pretty much everything in this release is thanks to the work of
     Clinton Gormley++
   - Fixed the behavior of finally() to make sure @results are passed along

@@ -4,6 +4,7 @@ Revision history for Perl extension Promises
 
   [ENHANCEMENTS]
   - add new function 'collect_hash'. (GH#52, yanick)
+  - add 'timeout' method. (GH#70, yanick)
 
   [MISC]
   - make tests use proper api. (TdvW)

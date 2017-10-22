@@ -1,188 +1,158 @@
 Revision history for Perl extension Promises
 
 {{$NEXT}}
+  [ API CHANGES ]
 
-  [ENHANCEMENTS]
-  - add new function 'collect_hash'. (GH#52, yanick)
-  - add 'timeout' method. (GH#70, yanick)
+  [ BUG FIXES ]
 
-  [MISC]
-  - make tests use proper api. (TdvW)
-  - have test load AnyEvent. (GH#72, Luke Triantafyllidis)
+  [ DOCUMENTATION ]
 
-  [DOCUMENTATION]
-  - Add a reference to the IO::Async deferred backend. (GH#71, Luke
-    Triantafyllidis)
+  [ ENHANCEMENTS ]
+
+  [ NEW FEATURES ]
+
+  [ STATISTICS ]
+
+0.97 2017-10-22
+  [ DOCUMENTATION ]
+    - Add a reference to the IO::Async deferred backend. (GH#71, Luke
+      Triantafyllidis)
+
+  [ ENHANCEMENTS ]
+    - add new function 'collect_hash'. (GH#52, yanick)
+    - add 'timeout' method. (GH#70, yanick)
+
+  [ MISC ]
+    - make tests use proper api. (TdvW)
+    - have test load AnyEvent. (GH#72, Luke Triantafyllidis)
+
+  [ STATISTICS ]
+    - code churn: 29 files changed, 640 insertions(+), 50 deletions(-)
 
 0.96 2017-08-26
-    - Promotion of trial release to the real deal.
-
-0.95_TRIAL 2017-08-19
-
-  [ENHANCEMENTS]
-  - add support for IO::Async. (GH#62)
-  - add Mojo::UserAgent example (GH#56, powerman)
-  - add $WARN_ON_UNHANDLED_REJECT. (GH#37, ruz)
-  - add `is_done` predicate. (GH#45, yanick)
-  - add `chain` method. (GH#47, yanick)
-  - add methods `resolved`, `rejected` and `deferred` now accept a coderef.
-    (GH#50, yanick)
-  - allows non-promises in 'collect'. (GH#53, yanick)
-
-  [BUG FIXES]
-  - fix case where exception exists but is false. (GH#48, stuckdownawell)
-
-  [DOCUMENTATION]
-  - doc fix from Amelia Ireland (RT#107559)
-  - fix typos in docs (GH#43, yanick)
-  - POD fixes. (GH#39, hatorikibble) 
-  - fix Mojo example (GH#41, InfinityGone)
-
-  [MISC]
-  - skip tests if AnyEvent is not installed (GH#42, yanick)
-  - add a META.json (GH#40, hatorikibble)
-  - README.md improvement. (GH#51, Andy Kogut + yanick)
-
+  - Promotion of trial release to the real deal.
 
 0.94 Monday, December 29, 2014
-  - fixing the other side of the AutoPrereqs 
-    issue, which is actually making sure that
-    test runs succeed if you do not have those
-    pre-reqs, again, sorry about this.
+  - fixing the other side of the AutoPrereqs  issue, which is actually
+    making sure that test runs succeed if you do not have those pre-reqs,
+    again, sorry about this.
 
 0.93 Wednesday, April 9th, 2014
-  - fix the AutoPrereqs issue so that EV,
-    AE, AnyEvent and Mojo::IOLoop are not
-    required anymore, sorry about that.
+  - fix the AutoPrereqs issue so that EV, AE, AnyEvent and Mojo::IOLoop are
+    not required anymore, sorry about that.
 
 0.92 Wednesday, April 9th, 2014
-  - just a quick update to make Mojo::IOLoop
-    recommended instead of required.
+  - just a quick update to make Mojo::IOLoop recommended instead of
+    required.
 
 0.91 Wednesday, March 19th, 2014
-  - fixed issue with re-resolved promises
-    not working correctly
-      - thanks to Gregory Oschwald for the bug
-      - thanks to Clinton Gormley for the fix
-      - github issue #28 & #29
+  - fixed issue with re-resolved promises not working correctly - thanks to
+    Gregory Oschwald for the bug - thanks to Clinton Gormley for the fix -
+    github issue #28 & #29
   - thanks to Sean Zellmer for some typo fix
 
 0.90 Saturday, Feb. 8th, 2014
-    !! ----------------------------------- !!
-    !!   BACKWARDS COMPATIBILITY WARNING   !!
-    !! ----------------------------------- !!
-    !! This is the first step towards full !!
-    !! compatibility with the Promises/A+  !!
-    !! spec, at which we will declare this !!
-    !! to be module to be 1.0              !!
-    !! ----------------------------------- !!
-
-      NOTE: Pretty much everything in this
-            release is thanks to the work
-            of Clinton Gormley++
-
-    - Fixed the behavior of finally() to make
-      sure @results are passed along correctly
-    - Handle any "then"-able object to be returned
-      as a result, instead of only accepting
-      Promise objects
-    - then/done/finally now accept both callbacks
-      (CODE refs) and "Callable" objects (objects
-      of classes that overload the CODE de-ref
-      operator)
-    - New docs in Promises::Cookbook::GentleIntro.
-    - Doc fixes and CPAN repository metadata added,
-      thanks to David Steinbrunner for this
-
+  - !!
+  - BACKWARDS COMPATIBILITY WARNING   !!
+  - !!
+  - This is the first step towards full !!
+  - compatibility with the Promises/A+	    !!
+  - spec, at which we will declare this !!
+  - to be module to be 1.0	    !!
+  - NOTE: Pretty much everything in this release is thanks to the work of
+    Clinton Gormley++
+  - Fixed the behavior of finally() to make sure @results are passed along
+    correctly
+  - Handle any "then"-able object to be returned as a result, instead of
+    only accepting Promise objects
+  - then/done/finally now accept both callbacks (CODE refs) and "Callable"
+    objects (objects of classes that overload the CODE de-ref operator)
+  - New docs in Promises::Cookbook::GentleIntro.
+  - Doc fixes and CPAN repository metadata added, thanks to David
+    Steinbrunner for this
 
 0.08 Tuesday, Jan. 21, 2014
-    !! Thanks to clinton gormley for all these
-    !! changes. Please take note of the backcompat
-    !! breaking change for finalize().
-
-    - then() callbacks are now wrapped in
-      an eval block to prevent fatal exceptions
-      and to ensure that rejected promises
-      are propagated correctly
-    - renamed finalize() to done()
-    - added catch() sugar which takes just
-      an error handler
-    - added finally() handler which will
-      always be called, regardles of
-      whether the promise is resolved
-      or rejected, much like try/catch/finally
+  - Thanks to clinton gormley for all these
+  - changes. Please take note of the backcompat
+  - breaking change for finalize().
+  - then() callbacks are now wrapped in an eval block to prevent fatal
+    exceptions and to ensure that rejected promises are propagated
+    correctly
+  - renamed finalize() to done()
+  - added catch() sugar which takes just an error handler
+  - added finally() handler which will always be called, regardles of
+    whether the promise is resolved or rejected, much like
+    try/catch/finally
 
 0.07 Saturday, Jan. 18, 2014
-    - fixing a issues with localizing
-      exceptions that were found by CPAN
-      testers
-      - thanks to clinton gormley for
-        providing the fix for this
+  - fixing a issues with localizing exceptions that were found by CPAN
+    testers - thanks to clinton gormley for providing the fix for this
 
 0.06 Friday, Jan. 17, 2014
-    - make sure to clear both resolved and
-      rejected callbacks after resolution,
-      thanks to clinton gormley for this.
-    - add event-loop specific backends to
-      allow promises to be resolved in an
-      async manner (as Promises/A+ suggests)
-      - thanks to clinton gormley for
-        starting this feature
-      - backend created for AE, AnyEvent
-        and EV
-      - backend for Mojo::IOLoop, thanks
-        to clinton gormley for this
-      - tests added
-    - add in finalize() operator for ending
-      a chain of promises (see docs for more
-      info)
-      - thanks to clinton gormley for this
-        feature, docs and tests
+  - make sure to clear both resolved and rejected callbacks after
+    resolution, thanks to clinton gormley for this.
+  - add event-loop specific backends to allow promises to be resolved in an
+    async manner (as Promises/A+ suggests) - thanks to clinton gormley for
+    starting this feature - backend created for AE, AnyEvent and EV -
+    backend for Mojo::IOLoop, thanks to clinton gormley for this - tests
+    added
+  - add in finalize() operator for ending a chain of promises (see docs for
+    more info) - thanks to clinton gormley for this feature, docs and tests
 
 0.05 Monday, Dec. 23, 2013
-    - catch exceptions in any callback and
-      call reject if they happen
-    - the 'promise' method on deferred objects
-      will now return a new Promises::Promise
-      instance each time it is called
-        - this prevents the memory cycle we
-          originally had
+  - catch exceptions in any callback and call reject if they happen
+  - the 'promise' method on deferred objects will now return a new
+    Promises::Promise instance each time it is called - this prevents the
+    memory cycle we originally had
 
 0.04 Thursday, Oct. 17, 2013
-    *** DEPRECATION WARNING ***
-    - The 'when' helper in Promises.pm is being
-      deprecated because it clashes with the
-      perl keyword. See RT #84024 for more info.
-    - 'when' renamed to 'collect'
-        - tests and docs adjusted accordingly
+  - DEPRECATION WARNING ***
+  - The 'when' helper in Promises.pm is being deprecated because it clashes
+    with the perl keyword. See RT #84024 for more info.
+  - 'when' renamed to 'collect' - tests and docs adjusted accordingly
 
 0.03 Sunday, Feb. 17th, 2013
-    - added a `deferred` helper function to Promises.pm
-
-    - fixed the reject call in `when`
-      (thanks to rafl for this)
-        - added tests for this
-
-    - large doc reworking
-        - moved things into a cookbook
-        - added example of usage with Mojo::IOLoop
-        - added comparison with Scala futures
-            - this still needs some work, but the
-              basics are ther
+  - added a `deferred` helper function to Promises.pm
+  - fixed the reject call in `when` (thanks to rafl for this) - added tests
+    for this
+  - large doc reworking - moved things into a cookbook - added example of
+    usage with Mojo::IOLoop - added comparison with Scala futures - this
+    still needs some work, but the basics are ther
 
 0.02 Saturday, Nov. 24th, 2012
-    - add several predicate methods to help when
-      interrogating status, this resolves RT #81278.
-        - thanks to Toby Inkster for this
-    - fixed error chaining so that the result of an
-      error in one step of the chain will be passed
-      onto the next step as well, this resolves
-      RT #81358.
-        - thanks to TOSHIOITO for this
-    - made error callbacks optional and ensured that
-      the errors will bubble to the next promise in
-      the chain, this resolves RT #81356.
-        - thanks again to TOSHIOITO for this
+  - add several predicate methods to help when interrogating status, this
+    resolves RT #81278. - thanks to Toby Inkster for this
+  - fixed error chaining so that the result of an error in one step of the
+    chain will be passed onto the next step as well, this resolves RT
+    #81358. - thanks to TOSHIOITO for this
+  - made error callbacks optional and ensured that the errors will bubble
+    to the next promise in the chain, this resolves RT #81356. - thanks
+    again to TOSHIOITO for this
 
 0.01 Friday, Nov. 16th, 2012
-    - First release to an unsuspecting world
+  - First release to an unsuspecting world
+
+0.95_TRIAL 2017-08-19
+  [ BUG FIXES ]
+    - fix case where exception exists but is false. (GH#48, stuckdownawell)
+
+  [ DOCUMENTATION ]
+    - doc fix from Amelia Ireland (RT#107559)
+    - fix typos in docs (GH#43, yanick)
+    - POD fixes. (GH#39, hatorikibble) 
+    - fix Mojo example (GH#41, InfinityGone)
+
+  [ ENHANCEMENTS ]
+    - add support for IO::Async. (GH#62)
+    - add Mojo::UserAgent example (GH#56, powerman)
+    - add $WARN_ON_UNHANDLED_REJECT. (GH#37, ruz)
+    - add `is_done` predicate. (GH#45, yanick)
+    - add `chain` method. (GH#47, yanick)
+    - add methods `resolved`, `rejected` and `deferred` now accept a
+      coderef. (GH#50, yanick)
+    - allows non-promises in 'collect'. (GH#53, yanick)
+
+  [ MISC ]
+    - skip tests if AnyEvent is not installed (GH#42, yanick)
+    - add a META.json (GH#40, hatorikibble)
+    - README.md improvement. (GH#51, Andy Kogut + yanick)

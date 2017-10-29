@@ -4,6 +4,7 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
+    - skip all backend compile tests (RT#123404)
 
   [ DOCUMENTATION ]
 

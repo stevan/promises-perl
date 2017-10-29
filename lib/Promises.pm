@@ -1,5 +1,6 @@
 package Promises;
-
+our $AUTHORITY = 'cpan:YANICK';
+$Promises::VERSION = '0.99';
 # ABSTRACT: An implementation of Promises in Perl
 
 use strict;
@@ -136,6 +137,16 @@ sub collect {
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Promises - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 0.99
 
 =head1 SYNOPSIS
 
@@ -486,9 +497,15 @@ promise can return more than one value, you can do:
 
 =back
 
+=head1 AUTHOR
 
+Stevan Little <stevan.little@iinteractive.com>
 
+=head1 COPYRIGHT AND LICENSE
 
+This software is copyright (c) 2017, 2014, 2012 by Infinity Interactive, Inc..
 
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
-
+=cut

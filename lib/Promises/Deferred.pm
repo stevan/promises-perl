@@ -24,6 +24,7 @@ my %statuses = (
 );
 
 my @pending_callbacks;
+my %runtime_state;
 my $notify_sub = Promises::Deferred::Default->get_notify_sub;
 sub _set_backend {
     my ( $class, $arg ) = @_;
@@ -40,6 +41,11 @@ sub _set_backend {
 
 # The callback our backends will call; this will handle all the promises that have pending notifications
 sub _invoke_cbs_callback {
+    if ($runtime_state{invoking}) {
+        warn "Promises: have confusing internal state!";
+    }
+    local $runtime_state{invoking}= 1;
+
     while (my $cb = shift @pending_callbacks) {
         _invoke_cb($cb);
 
@@ -74,7 +80,7 @@ sub _invoke_cbs {
     my ($cbs) = @_;
     return unless @$cbs;
 
-    my $should_schedule = !@pending_callbacks;
+    my $should_schedule = !@pending_callbacks && !$runtime_state{invoking};
     push @pending_callbacks, @$cbs;
 
     if ($should_schedule) {

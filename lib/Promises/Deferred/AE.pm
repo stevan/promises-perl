@@ -6,12 +6,30 @@ use warnings;
 
 use AE;
 
+my ($socket_pid, $socket_send, $socket_recv, $socket_io, $read_buf);
+
 sub notify_callback {
+    sysread $socket_recv, $read_buf, 16;
     Promises::Deferred::_invoke_cbs_callback();
 }
 
 sub do_notify {
-    AE::postpone \&notify_callback;
+    # If we forked, we can't trust our pipe anymore. Reset our state!
+    if (!$socket_pid || $socket_pid != $$) {
+        $socket_pid= $$;
+        if ($socket_send) { close($socket_send); }
+        if ($socket_recv) { close($socket_recv); }
+        ($socket_send, $socket_recv, $socket_io)= ();
+    }
+
+    # First init, or init post-fork
+    if (!$socket_io) {
+        pipe($socket_recv, $socket_send);
+        $socket_io= AE::io($socket_recv, 0, \&notify_callback);
+    }
+
+    # Write a single byte to our watcher
+    syswrite $socket_send, "\0";
 }
 
 sub get_notify_sub {

@@ -95,7 +95,16 @@ sub _invoke_cb {
     if (my $invoke_callback = $cb->[$self->{state}]) {
         local $@;
         eval {
-            my @result = $invoke_callback->(@{$self->{result}});
+            my (@result, $ret);
+            {
+                # We create a block here, to avoid situations where a callback does 'next'.
+                # If that happens, Perl nicely throws a warning but unrolls our stack until it
+                # finds a loop or a block, which ain't great. We can detect this by creating a
+                # block and monitoring whether it executes fully.
+                @result= $invoke_callback->(@{$self->{result}});
+                $ret= 1;
+            }
+            $ret or die "Promise callback exited via next/last, instead of returning cleanly";
             if (my $next = $cb->[0]) {
                 if (@result == 1 && is_blessed_ref($result[0]) && $result[0]->can('then')) {
                     if (is_blessed_refref($result[0]) && $result[0]->isa("Promises::Promise")) {

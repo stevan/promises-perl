@@ -47,7 +47,7 @@ sub _set_warn_on_unhandled_reject {
 
             warn "Promise's rejection ", $dump,
                 " was not handled",
-                ( ' at ', join ' line ', @{$self->{_caller}} ) x !! $self->{_caller}, "\n";
+                ($self->{_caller} ? ( ' at ', join ' line ', @{$self->{_caller}} ) : ()) , "\n";
         };
     }
 }

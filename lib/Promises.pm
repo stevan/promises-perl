@@ -43,7 +43,7 @@ sub _set_warn_on_unhandled_reject {
                 Data::Dumper->new([$self->result])->Terse(1)->Dump;
 
             chomp $dump;
-            $dump =~ s/\n/ /g;
+            $dump =~ s/\n\s*/ /g;
 
             warn "Promise's rejection ", $dump,
                 " was not handled",

@@ -249,7 +249,6 @@ exception or rethrow it.
             warn "We have a problem: $error";
             die $error;
         }
-    )
     )->then(
         undef,  # no resolved handler
         sub {

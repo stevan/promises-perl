@@ -234,9 +234,7 @@ exception or rethrow it.
     ->then(
         sub {
             my $count = shift;
-            if ( $count > 100 ) {
-                die "Count too high!"
-            }
+            die "Count too high!" if $count > 100;
             return $count
         }
     )->then(
@@ -251,9 +249,7 @@ exception or rethrow it.
         }
     )->then(
         undef,  # no resolved handler
-        sub {
-            return 1;
-        }
+        sub { return 1; }
     )-> then(
         sub {
             my $count = shift;

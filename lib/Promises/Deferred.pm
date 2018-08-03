@@ -94,6 +94,7 @@ sub _invoke_cb {
 
     if (my $invoke_callback = $cb->[$self->{state}]) {
         local $@;
+        local $_;
         eval {
             my (@result, $ret);
             {

@@ -122,7 +122,7 @@ has no fixed-order.
 The only real issue I have with this approach is the semi-global variable usage
 (C<$product>, C<$suggestions> and C<$reviews>), but otherwise it works fine.
 
-NOTE: Again, if can think of a better way to do this that I missed,
+NOTE: Again, if you can think of a better way to do this that I missed,
 please let me know.
 
 =head1 Mojo::UserAgent

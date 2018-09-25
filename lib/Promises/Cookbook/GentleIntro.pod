@@ -8,7 +8,7 @@ package Promises::Cookbook::GentleIntro;
 
 =encoding utf8
 
-If you have every done any async programming, you will be familiar with
+If you have ever done any async programming, you will be familiar with
 "callback hell", where one callback calls another, calls another, calls
 another... Promises give us back a top-to-bottom coding style, making async
 code easier to manage and understand. It looks like synchronous code, but
@@ -482,7 +482,7 @@ which uses L<Promises> will automatically use the specified backend.
 =head2 Recursing safely with with C<done()>
 
 One of the cool things about working with promises is that the return value
-gets passed down the chain as if we the code were synchronous. However that is
+gets passed down the chain as if the code were synchronous. However that is
 not always what we want.
 
 Imagine that we want to process every line in a file, which could be millions

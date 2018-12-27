@@ -16,6 +16,8 @@ use constant REJECTED    => 'rejected';
 
 sub new {
     my $class = shift;
+    # $previous is also passed in if the deferred object was derrived from a
+    # previous one and a subclass may want to copy some options from it
 
     my $caller = $Promises::WARN_ON_UNHANDLED_REJECT ? _trace() : undef ;
 
@@ -79,7 +81,7 @@ sub then {
     my $self = shift;
     my ( $callback, $error ) = $self->_callable_or_undef(@_);
 
-    my $d = ( ref $self )->new;
+    my $d = ( ref $self )->new( $self );
     push @{ $self->{'resolved'} } => $self->_wrap( $d, $callback, 'resolve' );
     push @{ $self->{'rejected'} } => $self->_wrap( $d, $error,    'reject' );
 
@@ -112,7 +114,7 @@ sub finally {
     my $self = shift;
     my ($callback) = $self->_callable_or_undef(@_);
 
-    my $d = ( ref $self )->new;
+    my $d = ( ref $self )->new( $self );
 
     if (defined $callback) {
         my ( @result, $method );
@@ -138,6 +140,11 @@ sub finally {
 
 }
 
+sub handle_timeout {
+    my ($self, $deferred) = @_;
+    $deferred->reject( 'timeout' );
+}
+
 sub timeout {
     my ( $self, $timeout ) = @_;
 
@@ -146,11 +153,11 @@ sub timeout {
         return $self->promise;
     }
 
-    my $deferred = ref($self)->new;
+    my $deferred = ref($self)->new( $self );
 
     my $cancel = $deferred->_timeout($timeout, sub {
         return if $deferred->is_done;
-        $deferred->reject( 'timeout' );
+        $self->handle_timeout( $deferred );
     } );
 
     $self->finally( $cancel )->then(

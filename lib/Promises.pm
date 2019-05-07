@@ -95,41 +95,17 @@ sub collect_hash {
 sub collect {
     my @promises = @_;
 
-    my $all_done  = $Backend->new;
-    my $results   = [];
-    my $remaining = scalar @promises;
-    foreach my $i ( 0 .. $#promises ) {
-        my $p = $promises[$i];
+    my $all_done = resolved();
 
-        # if it's not a Promise, it's something 
-        # that is already resolved
-        unless ( 
-            grep { ref $p eq $_ }
-                 qw/ Promises::Promise Promises::Deferred / 
-        ) {
-            $results->[$i] = [ $p ];
-            $remaining--;
-            next;
-        }
-
-        $p->then(
-            sub {
-                $results->[$i] = [@_];
-                $remaining--;
-                if (   $remaining == 0
-                    && $all_done->status ne $all_done->REJECTED )
-                {
-                    $all_done->resolve(@$results);
-                }
-            },
-            sub { $all_done->reject(@_) },
-        );
+    for my $p ( @promises ) {
+        my @results;
+        $all_done = $all_done->then( sub {
+            @results = @_;
+            return $p;
+        } )->then(sub{ ( @results, [ @_ ] ) } );
     }
 
-    $all_done->resolve(@$results)
-        if $remaining == 0 and $all_done->is_in_progress;
-
-    $all_done->promise;
+    return $all_done;
 }
 
 

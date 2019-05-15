@@ -4,22 +4,32 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
-    - Change inner working of collect() so that it deals with being passed
-      nothing. (GH#82)
-    - warn_on_unhandled_reject: deal with case where there is no caller.
-      (Peter Valdemar MÃ¸rch, GH#76)
 
   [ DOCUMENTATION ]
-  - Remove extra bracket in example. (perlover, GH#78)
-  - Minor text changes in POD. (manwar, GH#79)
-  - Mention other modules implementing promises. (GH#64)
 
   [ ENHANCEMENTS ]
-  - add Promises::Sub. (GH#54, yanick)
 
   [ NEW FEATURES ]
 
   [ STATISTICS ]
+
+1.00 2019-05-15
+  [ BUG FIXES ]
+    - Change inner working of collect() so that it deals with being passed
+      nothing. (GH#82)
+    - warn_on_unhandled_reject: deal with case where there is no caller.
+      (Peter Valdemar Mørch, GH#76)
+
+  [ DOCUMENTATION ]
+    - Remove extra bracket in example. (perlover, GH#78)
+    - Minor text changes in POD. (manwar, GH#79)
+    - Mention other modules implementing promises. (GH#64)
+
+  [ ENHANCEMENTS ]
+    - add Promises::Sub. (GH#54, yanick)
+
+  [ STATISTICS ]
+    - code churn: 13 files changed, 304 insertions(+), 65 deletions(-)
 
 0.99 2017-10-29
   [ BUG FIXES ]
@@ -54,32 +64,6 @@ Revision history for Perl extension Promises
 0.96 2017-08-26
   - Promotion of trial release to the real deal.
 
-0.95_TRIAL 2017-08-19
-  [ENHANCEMENTS]
-  - add support for IO::Async. (GH#62)
-  - add Mojo::UserAgent example (GH#56, powerman)
-  - add $WARN_ON_UNHANDLED_REJECT. (GH#37, ruz)
-  - add `is_done` predicate. (GH#45, yanick)
-  - add `chain` method. (GH#47, yanick)
-  - add methods `resolved`, `rejected` and `deferred` now accept a coderef.
-    (GH#50, yanick)
-  - allows non-promises in 'collect'. (GH#53, yanick)
-
-  [BUG FIXES]
-  - fix case where exception exists but is false. (GH#48, stuckdownawell)
-
-  [DOCUMENTATION]
-  - doc fix from Amelia Ireland (RT#107559)
-  - fix typos in docs (GH#43, yanick)
-  - POD fixes. (GH#39, hatorikibble) 
-  - fix Mojo example (GH#41, InfinityGone)
-
-  [MISC]
-  - skip tests if AnyEvent is not installed (GH#42, yanick)
-  - add a META.json (GH#40, hatorikibble)
-  - README.md improvement. (GH#51, Andy Kogut + yanick)
-
-
 0.94 Monday, December 29, 2014
   - fixing the other side of the AutoPrereqs  issue, which is actually
     making sure that test runs succeed if you do not have those pre-reqs,
@@ -104,7 +88,7 @@ Revision history for Perl extension Promises
   - BACKWARDS COMPATIBILITY WARNING   !!
   - !!
   - This is the first step towards full !!
-  - compatibility with the Promises/A+			    !!
+  - compatibility with the Promises/A+				    !!
   - spec, at which we will declare this !!
   - to be module to be 1.0  !!
   - NOTE: Pretty much everything in this release is thanks to the work of

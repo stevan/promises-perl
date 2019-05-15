@@ -486,6 +486,24 @@ promise can return more than one value, you can do:
 
 =back
 
+=head2 Perl Alternatives
+
+=over
+
+=item L<Future>
+
+=item L<Mojo::Promise>
+
+Part of the L<Mojolicious> package.
+
+=item L<Promise::ES6>
+
+=item L<Promise::Tiny>
+
+=back
+
+
+
 
 
 

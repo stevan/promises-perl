@@ -8,6 +8,7 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
   - Remove extra bracket in example. (perlover, GH#78)
   - Minor text changes in POD. (manwar, GH#79)
+  - Mention other modules implementing promises. (GH#64)
 
   [ ENHANCEMENTS ]
 

@@ -18,5 +18,11 @@ warning_like {
     $d->reject(1,2,3);
 } qr!Promise's rejection.*line 17!s, "catch regular reject";
 
+warning_like {
+    my $d = deferred();
+    $d->then(sub { "boo"})->then(sub { 'stuff' });
+    $d->reject(1,2,3);
+} qr!Promise's rejection \[ 1, 2, 3 \].*line 23!s, "nicely formatted single-line rejection dump";
+
 
 done_testing;

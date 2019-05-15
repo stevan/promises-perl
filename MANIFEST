@@ -64,6 +64,7 @@ t/060-free-refs.t
 t/070-accepted-rejected.t
 t/080-deferred-as-sub.t
 t/090-timeout.t
+t/late-warning.t
 t/lib/AsyncUtil.pm
 t/lib/NoEV.pm
 t/lib/Promises/Test.pm

@@ -8,13 +8,51 @@ use AnyEvent;
 
 use parent 'Promises::Deferred';
 
+# Before the pipe-based approach used below, there was an
+# AnyEvent->postpone-based approach for _notify_backend.
+# The current code is much more performant:
+
+# Original code (on a laptop on battery power):
+# Backend:  Promises::Deferred::AnyEvent
+# Benchmark: running one, two for at least 10 CPU seconds...
+#        one: 47 wallclock secs @ 2754.62/s (n=32780)
+#        two: 37 wallclock secs  @ 2450.45/s (n=24676)
+
+# New approach:
+# Backend:  Promises::Deferred::AnyEvent
+# Benchmark: running one, two for at least 10 CPU seconds...
+#        one: 10 wallclock secs @ 10182.12/s (n=106505)
+#        two: 10 wallclock secs @ 3847.01/s (n=39855)
+
+
+my ($socket_pid, $socket_send, $socket_recv, $socket_io,
+    $read_buf, @io_callbacks);
+
+sub _do_callbacks {
+    my @cbs = @io_callbacks;
+    @io_callbacks = ();
+    sysread $socket_recv, $read_buf, 16;
+    for my $cb_grp (@cbs) {
+        my ($result, $cbs) = @$cb_grp;
+        my @r = @$result;
+        $_->(@r) for @$cbs;
+    }
+}
+
 sub _notify_backend {
-    my ( $self, $callbacks, $result ) = @_;
-    AnyEvent::postpone {
-        foreach my $cb (@$callbacks) {
-            $cb->(@$result);
-        }
-    };
+    if (! $socket_pid || $socket_pid != $$) {
+        $socket_pid = $$;
+        close($socket_send) if defined $socket_send;
+        close($socket_recv) if defined $socket_recv;
+        pipe($socket_recv, $socket_send);
+        $socket_io = AnyEvent->io(
+            fh => $socket_recv,
+            poll => 'r',
+            cb => \&_do_callbacks);
+    }
+
+    push @io_callbacks, [ $_[2], $_[1] ];
+    syswrite $socket_send, ' ';
 }
 
 sub _timeout {

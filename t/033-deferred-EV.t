@@ -21,7 +21,7 @@ $d->resolve;
 
 is($run, 0, '... not run synchronously');
 
-EV::loop;
+EV::run EV::RUN_ONCE while $run == 0;
 
 is($run, 1, '... run asynchronously');
 

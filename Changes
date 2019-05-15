@@ -4,6 +4,8 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
+    - Change inner working of collect() so that it deals with being passed
+      nothing. (GH#82)
 
   [ DOCUMENTATION ]
   - Remove extra bracket in example. (perlover, GH#78)

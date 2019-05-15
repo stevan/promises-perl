@@ -28,6 +28,7 @@ lib/Promises/Deferred/EV.pm
 lib/Promises/Deferred/IO/Async.pm
 lib/Promises/Deferred/Mojo.pm
 lib/Promises/Promise.pm
+lib/Promises/Sub.pm
 t/00-compile.t
 t/00-report-prereqs.dd
 t/00-report-prereqs.t
@@ -54,6 +55,7 @@ t/032-deferred-AnyEvent.t
 t/033-deferred-EV.t
 t/034-deferred-Mojo.t
 t/040_finally.t
+t/045-attributes.t
 t/050-exceptions-pp.t
 t/051-exceptions-pp-anyevent.t
 t/052-exceptions-ev-anyevent.t

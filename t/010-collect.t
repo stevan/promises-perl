@@ -5,7 +5,7 @@ use warnings;
 
 use lib 't/lib';
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Test::Requires 'AnyEvent';
 
 use AnyEvent;
@@ -60,3 +60,8 @@ collect( deferred->resolve('foo')->promise, 'bar' )->then(
     }
 );
 
+subtest "empty collect" => sub {
+    collect()->then( sub {
+     is scalar @_, 0, "empty array";
+    });
+};

@@ -10,7 +10,7 @@ sub new {
 }
 
 sub start { EV::run }
-sub stop  { EV::suspend }
+sub stop  { EV::break EV::BREAK_ALL }
 
 
 1;

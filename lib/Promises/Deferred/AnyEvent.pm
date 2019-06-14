@@ -51,8 +51,11 @@ sub _notify_backend {
             cb => \&_do_callbacks);
     }
 
+    # skip signalling when there are callbacks already waiting
+    if (not @io_callbacks) {
+        syswrite $socket_send, ' ';
+    }
     push @io_callbacks, [ $_[2], $_[1] ];
-    syswrite $socket_send, ' ';
 }
 
 sub _timeout {

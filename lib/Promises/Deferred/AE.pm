@@ -47,8 +47,11 @@ sub _notify_backend {
         $socket_io = AE::io($socket_recv, 0, \&_do_callbacks);
     }
 
+    # skip signalling when there are callbacks already waiting
+    if (not @io_callbacks) {
+        syswrite $socket_send, ' ';
+    }
     push @io_callbacks, [ $_[2], $_[1] ];
-    syswrite $socket_send, ' ';
 }
 
 sub _timeout {

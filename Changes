@@ -8,6 +8,8 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
 
   [ ENHANCEMENTS ]
+  - Performance enhancements. (GH#61, GH#83, Erik Huelsmann, Tom van der
+    Woerdt)
 
   [ NEW FEATURES ]
 

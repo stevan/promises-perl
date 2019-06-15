@@ -18,7 +18,7 @@ Revision history for Perl extension Promises
     - Change inner working of collect() so that it deals with being passed
       nothing. (GH#82)
     - warn_on_unhandled_reject: deal with case where there is no caller.
-      (Peter Valdemar Mørch, GH#76)
+      (Peter Valdemar Morch, GH#76)
 
   [ DOCUMENTATION ]
     - Remove extra bracket in example. (perlover, GH#78)
@@ -171,7 +171,7 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
     - doc fix from Amelia Ireland (RT#107559)
     - fix typos in docs (GH#43, yanick)
-    - POD fixes. (GH#39, hatorikibble) 
+    - POD fixes. (GH#39, hatorikibble)
     - fix Mojo example (GH#41, InfinityGone)
 
   [ ENHANCEMENTS ]

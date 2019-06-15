@@ -3,3 +3,5 @@ __NOTES__.txt
 example/test.pl
 *.orig
 .envrc
+.gutctags
+tags

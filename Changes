@@ -8,12 +8,18 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
 
   [ ENHANCEMENTS ]
-  - Performance enhancements. (GH#61, GH#83, Erik Huelsmann, Tom van der
-    Woerdt)
 
   [ NEW FEATURES ]
 
   [ STATISTICS ]
+
+1.01 2019-06-15
+  [ ENHANCEMENTS ]
+    - Performance enhancements. (GH#61, GH#83, Erik Huelsmann, Tom van der
+      Woerdt)
+
+  [ STATISTICS ]
+    - code churn: 7 files changed, 159 insertions(+), 57 deletions(-)
 
 1.00 2019-05-15
   [ BUG FIXES ]
@@ -90,7 +96,8 @@ Revision history for Perl extension Promises
   - BACKWARDS COMPATIBILITY WARNING   !!
   - !!
   - This is the first step towards full !!
-  - compatibility with the Promises/A+				    !!
+  - compatibility with the Promises/A+					   
+    !!
   - spec, at which we will declare this !!
   - to be module to be 1.0  !!
   - NOTE: Pretty much everything in this release is thanks to the work of

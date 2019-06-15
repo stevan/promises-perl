@@ -1,0 +1,364 @@
+# NAME
+
+Promises - An implementation of Promises in Perl
+
+# VERSION
+
+version 1.01
+
+# SYNOPSIS
+
+```perl
+use AnyEvent::HTTP;
+use JSON::XS qw[ decode_json ];
+use Promises qw[ collect deferred ];
+
+sub fetch_it {
+    my ($uri) = @_;
+    my $d = deferred;
+    http_get $uri => sub {
+        my ($body, $headers) = @_;
+        $headers->{Status} == 200
+            ? $d->resolve( decode_json( $body ) )
+            : $d->reject( $body )
+    };
+    $d->promise;
+}
+
+my $cv = AnyEvent->condvar;
+
+collect(
+    fetch_it('http://rest.api.example.com/-/product/12345'),
+    fetch_it('http://rest.api.example.com/-/product/suggestions?for_sku=12345'),
+    fetch_it('http://rest.api.example.com/-/product/reviews?for_sku=12345'),
+)->then(
+    sub {
+        my ($product, $suggestions, $reviews) = @_;
+        $cv->send({
+            product     => $product,
+            suggestions => $suggestions,
+            reviews     => $reviews,
+        })
+    },
+    sub { $cv->croak( 'ERROR' ) }
+);
+
+my $all_product_info = $cv->recv;
+```
+
+# DESCRIPTION
+
+This module is an implementation of the "Promise/A+" pattern for
+asynchronous programming. Promises are meant to be a way to
+better deal with the resulting callback spaghetti that can often
+result in asynchronous programs.
+
+# FUTURE BACKWARDS COMPATIBILITY WARNING
+
+The version of this module is being bumped up to 0.90 as the first
+step towards 1.0 in which the goal is to have full Promises/A+ spec
+compatibility. This is a departure to the previous goal of being
+compatible with the Promises/A spec, this means that behavior may
+change in subtle ways (we will attempt to document this completely
+and clearly whenever possible).
+
+It is **HIGHLY** recommended that you test things very thoroughly
+before upgrading to this version.
+
+# BACKWARDS COMPATIBILITY WARNING
+
+In version up to and including 0.08 there was a bug in how
+rejected promises were handled. According to the spec, a
+rejected callback can:
+
+- Rethrow the exception, in which case the next rejected handler
+in the chain would be called, or
+- Handle the exception (by not `die`ing), in which case the next
+**resolved** handler in the chain would be called.
+
+In previous versions of [Promises](https://metacpan.org/pod/Promises), this last step was handled incorrectly:
+a rejected handler had no way of handling the exception.  Once a promise
+was rejected, only rejected handlers in the chain would be called.
+
+## Relation to the various Perl event loops
+
+This module is actually Event Loop agnostic, the SYNOPSIS above
+uses [AnyEvent::HTTP](https://metacpan.org/pod/AnyEvent::HTTP), but that is just an example, it can work
+with any of the existing event loops out on CPAN. Over the next
+few releases I will try to add in documentation illustrating each
+of the different event loops and how best to use Promises with
+them.
+
+## Relation to the Promise/A spec
+
+We are, with some differences, following the API spec called
+"Promise/A" (and the clarification that is called "Promise/A+")
+which was created by the Node.JS community. This is, for the most
+part, the same API that is implemented in the latest jQuery and
+in the YUI Deferred plug-in (though some purists argue that they
+both go it wrong, google it if you care). We differ in some
+respects to this spec, mostly because Perl idioms and best
+practices are not the same as Javascript idioms and best
+practices. However, the one important difference that should be
+noted is that "Promise/A+" strongly suggests that the callbacks
+given to `then` should be run asynchronously (meaning in the
+next turn of the event loop). We do not do this by default,
+because doing so would bind us to a given event loop
+implementation, which we very much want to avoid. However we
+now allow you to specify an event loop "backend" when using
+Promises, and assuming a Deferred backend has been written
+it will provide this feature accordingly.
+
+## Using a Deferred backend
+
+As mentioned above, the default Promises::Deferred class calls the
+success or error `then()` callback synchronously, because it isn't
+tied to a particular event loop.  However, it is recommended that you
+use the appropriate Deferred backend for whichever event loop you are
+running.
+
+Typically an application uses a single event loop, so all Promises
+should use the same event-loop. Module implementers should just use the
+Promises class directly:
+
+```perl
+package MyClass;
+use Promises qw(deferred collect);
+```
+
+End users should specify which Deferred backend they wish to use. For
+instance if you are using AnyEvent, you can do:
+
+```perl
+use Promises backend => ['AnyEvent'];
+use MyClass;
+```
+
+The Promises returned by MyClass will automatically use whichever
+event loop AnyEvent is using.
+
+See:
+
+- [Promises::Deferred::AE](https://metacpan.org/pod/Promises::Deferred::AE)
+- [Promises::Deferred::AnyEvent](https://metacpan.org/pod/Promises::Deferred::AnyEvent)
+- [Promises::Deferred::EV](https://metacpan.org/pod/Promises::Deferred::EV)
+- [Promises::Deferred::Mojo](https://metacpan.org/pod/Promises::Deferred::Mojo)
+- [Promises::Deferred::IO::Async](https://metacpan.org/pod/Promises::Deferred::IO::Async)
+
+## Relation to Promises/Futures in Scala
+
+Scala has a notion of Promises and an associated idea of Futures
+as well. The differences and similarities between this module
+and the Promises found in Scalar are highlighted in depth in a
+cookbook entry below.
+
+## Cookbook
+
+- [Promises::Cookbook::GentleIntro](https://metacpan.org/pod/Promises::Cookbook::GentleIntro)
+
+    Read this first! This cookbook provides a step-by-step explanation
+    of how Promises work and how to use them.
+
+- [Promises::Cookbook::SynopsisBreakdown](https://metacpan.org/pod/Promises::Cookbook::SynopsisBreakdown)
+
+    This breaks down the example in the SYNOPSIS and walks through
+    much of the details of Promises and how they work.
+
+- [Promises::Cookbook::TIMTOWTDI](https://metacpan.org/pod/Promises::Cookbook::TIMTOWTDI)
+
+    Promise are just one of many ways to do async programming, this
+    entry takes the Promises SYNOPSIS again and illustrates some
+    counter examples with various modules.
+
+- [Promises::Cookbook::ChainingAndPipelining](https://metacpan.org/pod/Promises::Cookbook::ChainingAndPipelining)
+
+    One of the key benefits of Promises is that it retains much of
+    the flow of a synchronous program, this entry illustrates that
+    and compares it with a synchronous (or blocking) version.
+
+- [Promises::Cookbook::Recursion](https://metacpan.org/pod/Promises::Cookbook::Recursion)
+
+    This entry explains how to keep the stack under control when
+    using Promises recursively.
+
+- [Promises::Cookbook::ScalaFuturesComparison](https://metacpan.org/pod/Promises::Cookbook::ScalaFuturesComparison)
+
+    This entry takes some examples of Futures in the Scala language
+    and translates them into Promises. This entry also showcases
+    using Promises with [Mojo::UserAgent](https://metacpan.org/pod/Mojo::UserAgent).
+
+# EXPORTS
+
+- `deferred`
+
+    This just creates an instance of the [Promises::Deferred](https://metacpan.org/pod/Promises::Deferred) class
+    it is purely for convenience.
+
+    Can take a coderef, which will be dealt with as a `then` argument.
+
+    ```perl
+    my $promise = deferred sub {
+        ... do stuff ...
+
+        return $something;
+    };
+
+    # equivalent to
+
+    my $dummy = deferred;
+
+    my $promise = $dummy->then(sub {
+        ... do stuff ...
+
+        return $something;
+    });
+
+    $dummy->resolve;
+    ```
+
+- `resolved( @values )`
+
+    Creates an instance of [Promises::Deferred](https://metacpan.org/pod/Promises::Deferred) resolved with
+    the provided `@values`. Purely a shortcut for
+
+    ```perl
+    my $promise = deferred;
+    $promise->resolve(@values);
+    ```
+
+- `rejected( @values )`
+
+    Creates an instance of [Promises::Deferred](https://metacpan.org/pod/Promises::Deferred) rejected with
+    the provided `@values`. Purely a shortcut for
+
+    ```perl
+    my $promise = deferred;
+    $promise->reject(@values);
+    ```
+
+- `collect( @promises )`
+
+    Accepts a list of [Promises::Promise](https://metacpan.org/pod/Promises::Promise) objects and then
+    returns a [Promises::Promise](https://metacpan.org/pod/Promises::Promise) object which will be called
+    once all the `@promises` have completed (either as an error
+    or as a success).
+
+    The eventual result of the returned promise
+    object will be an array of all the results of each
+    of the `@promises` in the order in which they where passed
+    to `collect` originally, wrapped in arrayrefs, or the first error if
+    at least one of the promises fail.
+
+    If `collect` is passed a value that is not a promise, it'll be wrapped
+    in an arrayref and passed through.
+
+    ```perl
+    my $p1 = deferred;
+    my $p2 = deferred;
+    $p1->resolve(1);
+    $p2->resolve(2,3);
+
+    collect(
+        $p1,
+        'not a promise',
+        $p2,
+    )->then(sub{
+        print join ' : ', map { join ', ', @$_ } @_; # => "1 : not a promise : 2, 3"
+    })
+    ```
+
+- `collect_hash( @promises )`
+
+    Like `collect`, but flatten its returned arrayref into a single
+    hash-friendly list.
+
+    `collect_hash` can be useful to a structured hash instead
+    of a long list of promise values.
+
+    For example,
+
+    ```perl
+    my $id = 12345;
+
+    collect(
+        fetch_it("http://rest.api.example.com/-/product/$id"),
+        fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+        fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+    )->then(
+        sub {
+            my ($product, $suggestions, $reviews) = @_;
+            $cv->send({
+                product     => $product,
+                suggestions => $suggestions,
+                reviews     => $reviews,
+                id          => $id
+            })
+        },
+        sub { $cv->croak( 'ERROR' ) }
+    );
+    ```
+
+    could be rewritten as
+
+    ```perl
+    my $id = 12345;
+
+    collect_hash(
+        id          => $id,
+        product     => fetch_it("http://rest.api.example.com/-/product/$id"),
+        suggestions => fetch_it("http://rest.api.example.com/-/product/suggestions?for_sku=$id"),
+        reviews     => fetch_it("http://rest.api.example.com/-/product/reviews?for_sku=$id"),
+    )->then(
+        sub {
+            my %results = @_;
+            $cv->send(\%results);
+        },
+        sub { $cv->croak( 'ERROR' ) }
+    );
+    ```
+
+    Note that all promise values of the key/value pairs passed to `collect_hash`
+    must return a scalar or nothing, as returning more than one value would
+    mess up the returned hash format. If a promise does return more than
+    one value, `collect_hash` will consider it as having failed.
+
+    If you know that a
+    promise can return more than one value, you can do:
+
+    ```perl
+    my $collected = collect_hash(
+        this => $promise_returning_scalar,
+        that => $promise_returning_list->then(sub{ [ @_ ] } ),
+    );
+    ```
+
+# SEE ALSO
+
+## Promises in General
+
+- [You're Missing the Point of Promises](http://domenic.me/2012/10/14/youre-missing-the-point-of-promises/)
+- [Systems Programming at Twitter](http://monkey.org/~marius/talks/twittersystems/)
+- [SIP-14 - Futures and Promises](http://docs.scala-lang.org/sips/pending/futures-promises.html)
+- [Promises/A+ spec](http://promises-aplus.github.io/promises-spec/)
+- [Promises/A spec](http://wiki.commonjs.org/wiki/Promises/A)
+
+## Perl Alternatives
+
+- [Future](https://metacpan.org/pod/Future)
+- [Mojo::Promise](https://metacpan.org/pod/Mojo::Promise)
+
+    Part of the [Mojolicious](https://metacpan.org/pod/Mojolicious) package.
+
+- [Promise::ES6](https://metacpan.org/pod/Promise::ES6)
+- [Promise::Tiny](https://metacpan.org/pod/Promise::Tiny)
+
+# AUTHOR
+
+Stevan Little <stevan.little@iinteractive.com>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2019, 2017, 2014, 2012 by Infinity Interactive, Inc..
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.

@@ -8,8 +8,8 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
   * Fixed pod error as reported by CPANTS. (GH#83, Mohammad S Anwar)
 
-
   [ ENHANCEMENTS ]
+  * In similar vain to PR #61, optimize _notify_backend (for IO::Async). (GH#85, Erik Huelsmann)
 
   [ NEW FEATURES ]
 

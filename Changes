@@ -6,14 +6,23 @@ Revision history for Perl extension Promises
   [ BUG FIXES ]
 
   [ DOCUMENTATION ]
-  * Fixed pod error as reported by CPANTS. (GH#83, Mohammad S Anwar)
 
   [ ENHANCEMENTS ]
-  * In similar vain to PR #61, optimize _notify_backend (for IO::Async). (GH#85, Erik Huelsmann)
 
   [ NEW FEATURES ]
 
   [ STATISTICS ]
+
+1.02 2019-06-22
+  [ DOCUMENTATION ]
+    - Fixed pod error as reported by CPANTS. (GH#83, Mohammad S Anwar)
+
+  [ ENHANCEMENTS ]
+    - In similar vain to PR #61, optimize _notify_backend (for IO::Async).
+      (GH#85, Erik Huelsmann)
+
+  [ STATISTICS ]
+    - code churn: 3 files changed, 31 insertions(+), 9 deletions(-)
 
 1.01 2019-06-15
   [ ENHANCEMENTS ]
@@ -99,7 +108,7 @@ Revision history for Perl extension Promises
   - !!
   - This is the first step towards full !!
   - compatibility with the Promises/A+					   
-    !!
+	!!
   - spec, at which we will declare this !!
   - to be module to be 1.0  !!
   - NOTE: Pretty much everything in this release is thanks to the work of

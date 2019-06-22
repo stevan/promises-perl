@@ -541,7 +541,7 @@ on to reading the next line.  We could do this as follows:
 
 This code has two stack problems. The first is that, every time we process a
 line, we recurse into the current C<__SUB__> B<from> the current sub.  This
-problem is solved by specifying an L</Event loop specific backends> somewhere
+problem is solved by specifying one of the L</Event loop specific backends> somewhere
 in our application, which we discussed above.
 
 The second problem is that every time we recurse into the current

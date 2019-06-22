@@ -6,6 +6,8 @@ Revision history for Perl extension Promises
   [ BUG FIXES ]
 
   [ DOCUMENTATION ]
+  * Fixed pod error as reported by CPANTS. (GH#83, Mohammad S Anwar)
+
 
   [ ENHANCEMENTS ]
 

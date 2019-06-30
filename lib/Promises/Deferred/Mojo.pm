@@ -8,9 +8,29 @@ use Mojo::IOLoop;
 
 use parent 'Promises::Deferred';
 
+
+# Before the next_tick-based approach used below, there was a
+# Mojo::IOLoop->timer()-based approach for _notify_backend.
+# The current code is more performant:
+
+# Original code (using the Mojo::Reactor::EV backend):
+# Backend:  Promises::Deferred::Mojo
+# Benchmark: running one, two for at least 10 CPU seconds...
+#        one: 46 wallclock secs @ 758.45/s (n=8032)
+#        two: 44 wallclock secs @ 309.08/s (n=3097)
+
+
+# New approach:
+# Backend:  Promises::Deferred::Mojo
+# Benchmark: running one, two for at least 10 CPU seconds...
+#        one: 29 wallclock secs @ 1714.56/s (n=17197)
+#        two: 24 wallclock secs @ 1184.80/s (n=12156)
+
+
+
 sub _notify_backend {
     my ( $self, $callbacks, $result ) = @_;
-    Mojo::IOLoop->timer(0,sub {
+    Mojo::IOLoop->next_tick(sub {
         foreach my $cb (@$callbacks) {
             $cb->(@$result);
         }

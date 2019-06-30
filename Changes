@@ -8,6 +8,7 @@ Revision history for Perl extension Promises
   [ DOCUMENTATION ]
 
   [ ENHANCEMENTS ]
+  - In similar vain to PR61, optimize _notify_backend for Mojo. (GH#86, Erik Huelsmann)
 
   [ NEW FEATURES ]
 

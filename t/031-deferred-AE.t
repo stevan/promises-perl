@@ -19,7 +19,7 @@ $d->resolve;
 is($run, 0, '... not run synchronously');
 
 my $cv = AE::cv;
-my $w  = AE::timer( 0, 0, sub{ $cv->send } );
+my $w  = AE::timer( 0.01, 0, sub{ $cv->send } );
 
 $cv->recv;
 

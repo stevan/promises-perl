@@ -9,6 +9,7 @@ Revision history for Perl extension Promises
 
   [ DOCUMENTATION ]
   - Add two more promise modules in SEE ALSO. (GH#90, FGasper)
+  - Add directives to how to install from master. (GH#89)
 
   [ ENHANCEMENTS ]
   - In similar vain to PR61, optimize _notify_backend for Mojo. (GH#86, Erik Huelsmann)

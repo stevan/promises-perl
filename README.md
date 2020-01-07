@@ -49,12 +49,30 @@ my $all_product_info = $cv->recv;
 
 ## INSTALLATION
 
-To install this module type the following:
+To install this module from its CPAN tarball, type the following:
 
    perl Makefile.PL
    make
    make test
    make install
+
+
+If you cloned the github repo, the branch `releases` has the 
+same code than the one living in CPAN, so the same `Makefile` 
+dance will work. The` master` branch, however, needs to be built using
+Dist::Zilla:
+
+    dzil install
+
+Be warned that the Dist::Zilla configuration is fine-tuned 
+to my needs, so the dependency
+list to get it running is ludicrously huge. If you want a quick
+and dirty install, you can also do:
+
+    git checkout releases -- Makefile.PL
+    perl Makefile.PL
+    make test
+    make install
 
 ## DEPENDENCIES
 

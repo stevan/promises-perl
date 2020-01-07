@@ -6,6 +6,7 @@ Revision history for Perl extension Promises
   [ BUG FIXES ]
 
   [ DOCUMENTATION ]
+  - Add two more promise modules in SEE ALSO. (GH#90, FGasper)
 
   [ ENHANCEMENTS ]
   - In similar vain to PR61, optimize _notify_backend for Mojo. (GH#86, Erik Huelsmann)
@@ -108,7 +109,7 @@ Revision history for Perl extension Promises
   - BACKWARDS COMPATIBILITY WARNING   !!
   - !!
   - This is the first step towards full !!
-  - compatibility with the Promises/A+					   
+  - compatibility with the Promises/A+
 	!!
   - spec, at which we will declare this !!
   - to be module to be 1.0  !!

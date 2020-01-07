@@ -5,3 +5,4 @@ example/test.pl
 .envrc
 .gutctags
 tags
+.build

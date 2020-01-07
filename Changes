@@ -4,6 +4,8 @@ Revision history for Perl extension Promises
   [ API CHANGES ]
 
   [ BUG FIXES ]
+  - Modified tests as AnyEvent began to fail when waiting for 0 seconds.
+    (GH#88)
 
   [ DOCUMENTATION ]
   - Add two more promise modules in SEE ALSO. (GH#90, FGasper)

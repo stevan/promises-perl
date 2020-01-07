@@ -19,7 +19,7 @@ $d->resolve;
 is($run, 0, '... not run synchronously');
 
 my $cv = AnyEvent->condvar;
-my $w  = AnyEvent->timer( after => 0, cb => sub{ $cv->send } );
+my $w  = AnyEvent->timer( after => 0.01, cb => sub{ $cv->send } );
 
 $cv->recv;
 

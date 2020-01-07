@@ -33,6 +33,10 @@ on 'configure' => sub {
   requires "ExtUtils::MakeMaker" => "0";
 };
 
+on 'configure' => sub {
+  suggests "JSON::PP" => "2.27300";
+};
+
 on 'develop' => sub {
   requires "Test::More" => "0.96";
   requires "Test::Vars" => "0";

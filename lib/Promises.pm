@@ -475,6 +475,10 @@ Part of the L<Mojolicious> package.
 
 =item L<Promise::Tiny>
 
+=item L<AnyEvent::XSPromises>
+
+=item L<Promise::XS>
+
 =back
 
 

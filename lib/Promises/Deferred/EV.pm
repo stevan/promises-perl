@@ -59,8 +59,12 @@ sub _timeout {
     my ( $self, $timeout, $callback ) = @_;
 
     my $id = EV::timer $timeout, 0, $callback;
-    
+
     return sub { undef $id };
+}
+
+sub cleanup {
+    $_[0] && defined $socket_io ? $socket_io->keepalive(0) : undef $socket_io;
 }
 
 1;

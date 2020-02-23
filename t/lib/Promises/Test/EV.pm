@@ -10,7 +10,10 @@ sub new {
 }
 
 sub start { EV::run }
-sub stop  { EV::break EV::BREAK_ALL }
+sub stop  {
+    EV::break EV::BREAK_ALL;
+    Promises::Deferred::EV->cleanup;
+}
 
 
 1;

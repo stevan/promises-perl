@@ -9,12 +9,13 @@ use Promises::Test;
 
 use Promises 'deferred', 'collect';
 
+# EV needs to be at the end
 subtest $_, \&test_me, $_ for qw/
-    EV
     AnyEvent
     IO::Async
     AE
     Mojo
+    EV
 /;
 
 sub test_me {
@@ -28,7 +29,7 @@ sub test_me {
     my $p1 = deferred();
     my $p2 = $p1->timeout(1);
     my $p3 = $p1->then(sub { is_deeply \@_, [ 'gotcha' ], 'p3 resolved' });
-    my $p4 = $p1->timeout(2)->then(sub { is $_[0] => 'gotcha' });
+    my $p4 = $p1->timeout(2)->then(sub { is $_[0] => 'gotcha', 'p4 resolved' });
 
     collect($p3,$p4)->then(sub{ $backend->stop });
 

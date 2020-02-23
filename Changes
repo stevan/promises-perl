@@ -8,6 +8,8 @@ Revision history for Perl extension Promises
  [DOCUMENTATION]
 
  [ENHANCEMENTS]
+ - P::D::EV has a new `cleanup` class method clearing up
+    the EV handler. (GH#91, wangvisual)
 
  [NEW FEATURES]
 

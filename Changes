@@ -8,12 +8,18 @@ Revision history for Perl extension Promises
  [DOCUMENTATION]
 
  [ENHANCEMENTS]
- - P::D::EV has a new `cleanup` class method clearing up
-    the EV handler. (GH#91, wangvisual)
 
  [NEW FEATURES]
 
  [STATISTICS]
+
+1.04 2020-02-23
+ [ENHANCEMENTS]
+ - P::D::EV has a new `cleanup` class method clearing up the EV handler.
+   (GH#91, wangvisual)
+
+ [STATISTICS]
+ - code churn: 4 files changed, 173 insertions(+), 160 deletions(-)
 
 1.03 2020-01-06
  [BUG FIXES]

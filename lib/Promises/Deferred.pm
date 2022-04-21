@@ -55,7 +55,7 @@ sub is_failed      { $_[0]->is_rejected }
 sub resolve {
     my $self = shift;
 
-    die "Cannot resolve. Already  " . $self->status
+    confess "Cannot resolve. Already " . $self->status
         unless $self->is_in_progress;
 
     $self->{'result'} = [@_];
@@ -66,7 +66,7 @@ sub resolve {
 
 sub reject {
     my $self = shift;
-    die "Cannot reject. Already  " . $self->status
+    confess "Cannot reject. Already " . $self->status
         unless $self->is_in_progress;
 
     $self->{'result'} = [@_];

@@ -5,6 +5,7 @@ package Promises;
 use strict;
 use warnings;
 
+use Scalar::Util qw[ blessed ];
 use Promises::Deferred;
 our $Backend = 'Promises::Deferred';
 
@@ -97,15 +98,25 @@ sub collect {
 
     my $all_done = resolved();
 
+    my @results;
     for my $p ( @promises ) {
-        my @results;
-        $all_done = $all_done->then( sub {
-            @results = @_;
-            return $p;
-        } )->then(sub{ ( @results, [ @_ ] ) } );
+        if ( $p && blessed $p && $p->can('then') ) {
+            $all_done = $all_done->then( sub {
+                $p->then( sub {
+                    push @results, [ @_ ];
+                    return;
+                } )
+            } );
+        } else {
+            # not actually a promise; collect directly
+            $all_done = $all_done->then( sub {
+                push @results, [ $p ];
+                return;
+            } );
+        }
     }
 
-    return $all_done;
+    return $all_done->then( sub { @results } );
 }
 
 1;

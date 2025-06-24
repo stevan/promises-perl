@@ -9,6 +9,8 @@ Revision history for Perl extension Promises
 
  [ENHANCEMENTS]
  - Fix quadratic slowdown in collect(). (GH#96, mauke)
+ - Use `confess` instead of `die` for more useful debugging 
+    information. (GH#94, maros)
 
  [NEW FEATURES]
 

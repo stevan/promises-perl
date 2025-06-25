@@ -1,6 +1,7 @@
 package Promises::Deferred::AE;
+our $AUTHORITY = 'cpan:YANICK';
 # ABSTRACT: An implementation of Promises in Perl
-
+$Promises::Deferred::AE::VERSION = '1.05';
 use strict;
 use warnings;
 
@@ -66,6 +67,16 @@ sub _timeout {
 
 __END__
 
+=pod
+
+=head1 NAME
+
+Promises::Deferred::AE - An implementation of Promises in Perl
+
+=head1 VERSION
+
+version 1.05
+
 =head1 SYNOPSIS
 
     use Promises backend => ['AE'], qw[ deferred collect ];
@@ -92,5 +103,15 @@ the application:
     use Promises -backend => ['AE'];
     use MyClass;
 
-=cut
+=head1 AUTHOR
 
+Stevan Little <stevan.little@iinteractive.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2025, 2017, 2014, 2012 by Infinity Interactive, Inc.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

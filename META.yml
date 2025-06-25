@@ -1,0 +1,104 @@
+---
+abstract: 'An implementation of Promises in Perl'
+author:
+  - 'Stevan Little <stevan.little@iinteractive.com>'
+build_requires:
+  ExtUtils::MakeMaker: '0'
+  File::Spec: '0'
+  IO::Handle: '0'
+  IPC::Open3: '0'
+  Test::Exception: '0'
+  Test::Fatal: '0'
+  Test::More: '0.89'
+  Test::Pod: '0'
+  Test::Requires: '0'
+  Test::Warn: '0'
+  lib: '0'
+  perl: '5.006'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 6.033, CPAN::Meta::Converter version 2.150010'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: Promises
+provides:
+  Promises:
+    file: lib/Promises.pm
+    version: '1.05'
+  Promises::Deferred:
+    file: lib/Promises/Deferred.pm
+    version: '1.05'
+  Promises::Deferred::AE:
+    file: lib/Promises/Deferred/AE.pm
+    version: '1.05'
+  Promises::Deferred::AnyEvent:
+    file: lib/Promises/Deferred/AnyEvent.pm
+    version: '1.05'
+  Promises::Deferred::EV:
+    file: lib/Promises/Deferred/EV.pm
+    version: '1.05'
+  Promises::Deferred::IO::Async:
+    file: lib/Promises/Deferred/IO/Async.pm
+    version: '1.05'
+  Promises::Deferred::Mojo:
+    file: lib/Promises/Deferred/Mojo.pm
+    version: '1.05'
+  Promises::Promise:
+    file: lib/Promises/Promise.pm
+    version: '1.05'
+  Promises::Sub:
+    file: lib/Promises/Sub.pm
+    version: '1.05'
+requires:
+  Carp: '0'
+  Data::Dumper: '0'
+  Exporter: '0'
+  Module::Runtime: '0'
+  Scalar::Util: '0'
+  Sub::Attribute: '0'
+  Sub::Exporter: '0'
+  constant: '0'
+  parent: '0'
+  strict: '0'
+  warnings: '0'
+resources:
+  bugtracker: https://github.com/stevan/promises-perl/issues
+  homepage: https://github.com/stevan/promises-perl
+  repository: https://github.com/stevan/promises-perl.git
+version: '1.05'
+x_authority: cpan:YANICK
+x_contributor_covenant:
+  version: 0.02
+x_contributors:
+  - 'Andy Kogut <mail@andykog.com>'
+  - "Arthur Axel 'fREW' Schmidt <frioux@gmail.com>"
+  - 'Breno G. de Oliveira <garu@cpan.org>'
+  - 'Clinton Gormley <clint@traveljury.com>'
+  - 'David Steinbrunner <dsteinbrunner@pobox.com>'
+  - 'Erik Huelsmann <ehuels@gmail.com>'
+  - 'Felipe Gasper <felipe@felipegasper.com>'
+  - 'Florian Ragwitz <rafl@debian.org>'
+  - 'hatorikibble <at.peter.mayr@gmail.com>'
+  - 'hatorikibble <at.peter.mayr@posteo.de>'
+  - 'InfinityGone <InfinityGone@users.noreply.github.com>'
+  - 'Lukas Mai <lukasmai.403@gmail.com>'
+  - 'Luke Triantafyllidis <luket@mailguard.com.au>'
+  - 'Maros Kollar <maros.kollar@geizhals.at>'
+  - 'Mohammad S Anwar <Mohammad.Anwar@yahoo.com>'
+  - 'Opera Wang <Opera.Wang+step@gmail.com>'
+  - 'Perlover <perlover@perlover.com>'
+  - 'Peter Valdemar Mørch <peter@morch.com>'
+  - 'Ricardo Signes <rjbs@cpan.org>'
+  - 'Ruslan Zakirov <ruz@bestpractical.com>'
+  - 'Sean Zellmer <sean@lejeunerenard.com>'
+  - 'Stevan Little <stevan.little@gmail.com>'
+  - 'stuckdownawell <stuckdownawell@gmail.com>'
+  - 'Tom van der Woerdt <tom.vanderwoerdt@booking.com>'
+  - 'Yanick Champoux <yanick@babyl.ca>'
+  - 'Yanick Champoux <yanick@babyl.dyndns.org>'
+x_generated_by_perl: v5.38.0
+x_serialization_backend: 'YAML::Tiny version 1.74'
+x_spdx_expression: 'Artistic-1.0-Perl OR GPL-1.0-or-later'
